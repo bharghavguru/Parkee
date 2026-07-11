@@ -17,7 +17,7 @@ export default function Logo({ size = 'medium', className = '', showText = true 
       <svg
         width={width}
         height={width * 0.75}
-        viewBox="0 0 200 150"
+        viewBox="0 -8.5 200 150"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -40,24 +40,6 @@ export default function Logo({ size = 'medium', className = '', showText = true 
 
         {/* Layer 4: Blue Inner Dot inside the White Pin */}
         <circle cx="100" cy="55" r="6" fill={brandColor} />
-
-        {/* Layer 5: Typography Text "PARKEE" */}
-        {showText && (
-          <text
-            x="100"
-            y="142"
-            textAnchor="middle"
-            fill={brandColor}
-            style={{
-              fontFamily: "'Outfit', 'Inter', system-ui, sans-serif",
-              fontWeight: '700',
-              fontSize: '26px',
-              letterSpacing: '1.2px',
-            }}
-          >
-            PARKEE
-          </text>
-        )}
       </svg>
     </div>
   );
