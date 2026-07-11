@@ -17,11 +17,15 @@ import {
   Wallet
 } from 'lucide-react';
 
-export default function UserProfile({ onBack, onLogout, onSwitchToHost, onNavigateTab }) {
+export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToHost, onNavigateTab }) {
   const [subPage, setSubPage] = useState(null); // null | 'wallet'
   const [balance, setBalance] = useState(45.20);
   const [topupAmount, setTopupAmount] = useState('');
   const [isTopupOpen, setIsTopupOpen] = useState(false);
+
+  const name = currentUser?.name || 'Alex Johnson';
+  const phone = currentUser?.phone || '+44 7700 900123';
+  const email = currentUser?.email || 'alex@example.com';
 
   const handleAddCash = (e) => {
     e.preventDefault();
@@ -116,7 +120,7 @@ export default function UserProfile({ onBack, onLogout, onSwitchToHost, onNaviga
           <div className="profile-photo-wrapper">
             <img 
               src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" 
-              alt="Alex Johnson Profile" 
+              alt={`${name} Profile`} 
               className="profile-lg-photo"
             />
             {/* Green verification symbol circle overlay */}
@@ -125,11 +129,12 @@ export default function UserProfile({ onBack, onLogout, onSwitchToHost, onNaviga
             </div>
           </div>
 
-          <h2 className="profile-user-fullname">Alex Johnson</h2>
-          <span className="profile-user-phonelabel">+44 7700 900123</span>
+          <h2 className="profile-user-fullname">{name}</h2>
+          <span className="profile-user-phonelabel">{phone}</span>
+          <span className="profile-user-phonelabel" style={{ color: 'var(--color-text-muted)', fontSize: '11px', marginTop: '2px', fontWeight: '600' }}>{email}</span>
           
           {/* Verified Badge pill */}
-          <div className="profile-verified-badge-pill">
+          <div className="profile-verified-badge-pill" style={{ marginTop: '10px' }}>
             <CheckCircle2 size={12} className="verified-pill-icon" />
             <span>Verified</span>
           </div>

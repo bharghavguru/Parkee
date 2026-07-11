@@ -16,6 +16,13 @@ export default function App() {
   const [activeOtp, setActiveOtp] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
   
+  // Real-time user session status
+  const [currentUser, setCurrentUser] = useState({
+    name: 'Alex Johnson',
+    email: 'alex@example.com',
+    phone: '+44 7700 900123'
+  });
+
   // Spots and reservation states
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [activeBooking, setActiveBooking] = useState(null);
@@ -29,6 +36,10 @@ export default function App() {
   // Handle phone submission & transition to OTP page
   const handleSendOTP = (phone) => {
     const code = generateOTP();
+    setCurrentUser(prev => ({
+      ...prev,
+      phone: phone
+    }));
     setPhoneNumber(phone);
     setActiveOtp(code);
     setToastMessage(`Your PARKEE verification code is ${code}. Valid for 10 min.`);
@@ -53,12 +64,22 @@ export default function App() {
 
   // Handle guest quick-login
   const handleGuestLogin = () => {
+    setCurrentUser({
+      name: 'Guest User',
+      email: 'guest@parkee.com',
+      phone: '+91 99999 99999'
+    });
     setScreen('usertype-select');
     setToastMessage("Signed in under temporary Guest authorization");
   };
 
   // Handle email login submission
-  const handleEmailSubmit = () => {
+  const handleEmailSubmit = (emailVal) => {
+    setCurrentUser({
+      name: emailVal.split('@')[0], // Extract username from email as mock name
+      email: emailVal,
+      phone: '+91 98765 43210'
+    });
     setScreen('usertype-select');
   };
 
@@ -69,6 +90,11 @@ export default function App() {
     setSelectedSpot(null);
     setActiveBooking(null);
     setDefaultHomeTab('home');
+    setCurrentUser({
+      name: 'Alex Johnson',
+      email: 'alex@example.com',
+      phone: '+44 7700 900123'
+    });
   };
 
   // Render stateful screen content inside simulated phone shell
@@ -78,6 +104,7 @@ export default function App() {
         return (
           <SignUp 
             onSignUpSubmit={(name, email, phone) => {
+              setCurrentUser({ name, email, phone });
               setPhoneNumber(phone);
               setToastMessage(`Welcome to PARKEE, ${name}! Your account has been created.`);
               setScreen('usertype-select');
@@ -120,6 +147,7 @@ export default function App() {
       case 'home':
         return (
           <HomeNearbySpots
+            currentUser={currentUser}
             onLogout={handleLogout}
             onSwitchToHost={() => setScreen('host')}
             onSelectSpot={(spot) => {
@@ -167,6 +195,7 @@ export default function App() {
         return (
           <SignUp 
             onSignUpSubmit={(name, email, phone) => {
+              setCurrentUser({ name, email, phone });
               setPhoneNumber(phone);
               setToastMessage(`Welcome to PARKEE, ${name}! Your account has been created.`);
               setScreen('usertype-select');

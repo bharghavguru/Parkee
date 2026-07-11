@@ -18,7 +18,7 @@ import {
 import Logo from './Logo';
 import UserProfile from './UserProfile';
 
-export default function HomeNearbySpots({ onLogout, onSwitchToHost, onSelectSpot, activeBooking, initialTab = 'home' }) {
+export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost, onSelectSpot, activeBooking, initialTab = 'home' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(initialTab); // 'home' | 'bookings' | 'messages' | 'profile'
   const [cctvFilter, setCctvFilter] = useState(false);
@@ -303,6 +303,7 @@ export default function HomeNearbySpots({ onLogout, onSwitchToHost, onSelectSpot
       case 'profile':
         return (
           <UserProfile 
+            currentUser={currentUser}
             onBack={() => setActiveTab('home')} 
             onLogout={onLogout} 
             onSwitchToHost={onSwitchToHost} 
