@@ -2712,4 +2712,225 @@ h1 {
   margin: 0 16px 20px 16px;
 }
 
+/* ==========================================================================
+   SignUp Screen Styles
+   ========================================================================== */
+.signup-wrapper {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  text-align: center;
+  height: 100%;
+  background-color: #ffffff;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.signup-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.signup-brand-logo {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-brand);
+  margin-top: 14px;
+  letter-spacing: 1px;
+}
+
+.signup-greeting-title {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--color-brand);
+  margin-top: 14px;
+}
+
+.signup-greeting-sub {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  margin-bottom: 24px;
+}
+
+.signup-form-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.form-group-signup {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.signup-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-text-dark);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.signup-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0 14px;
+  background-color: #ffffff;
+  height: 48px;
+  transition: border-color 0.15s;
+}
+
+.signup-input-container:focus-within {
+  border-color: var(--color-brand);
+}
+
+.signup-input-icon {
+  color: #718096;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.signup-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14.5px;
+  outline: none;
+  color: var(--color-brand);
+  font-weight: 550;
+  font-family: var(--font-family);
+}
+
+.signup-phone-layout-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.signup-phone-prefix-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0 12px;
+  background-color: #ffffff;
+  height: 48px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+
+.signup-phone-prefix-select:focus-within {
+  border-color: var(--color-brand);
+}
+
+.signup-phone-input-wrap {
+  flex: 1;
+}
+
+.btn-signup-primary {
+  width: 100% !important;
+  height: 48px;
+  background-color: #006C35 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 750;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.15s;
+  outline: none;
+  font-family: var(--font-family);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-signup-primary:hover {
+  background-color: #005026 !important;
+}
+
+.signup-divider-row {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  width: 100%;
+}
+
+.signup-divider-line {
+  flex: 1;
+  height: 1.5px;
+  background-color: var(--color-border);
+}
+
+.signup-divider-text {
+  font-size: 10px;
+  font-weight: 800;
+  color: #a0aec0;
+  padding: 0 12px;
+  letter-spacing: 0.5px;
+}
+
+.signup-social-grid {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-social-signup {
+  flex: 1;
+  height: 46px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--color-brand);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  outline: none;
+  font-family: var(--font-family);
+}
+
+.btn-social-signup:hover {
+  background-color: var(--color-bg-light);
+}
+
+.signup-disclaimer-text {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-top: 24px;
+  padding: 0 10px;
+}
+
+.signup-link-bold {
+  font-weight: 750;
+  color: var(--color-brand);
+  cursor: pointer;
+}
+
+.signup-footer-link {
+  font-size: 13.5px;
+  color: var(--color-text-dark);
+  margin-top: 16px;
+  margin-bottom: 12px;
+}
+
+
 

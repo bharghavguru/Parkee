@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SignUp from './components/SignUp';
 import PhoneLogin from './components/PhoneLogin';
 import OTPVerification from './components/OTPVerification';
 import EmailLogin from './components/EmailLogin';
@@ -10,7 +11,7 @@ import BookingForm from './components/BookingForm';
 import Toast from './components/Toast';
 
 export default function App() {
-  const [screen, setScreen] = useState('login'); // 'login' | 'verify-otp' | 'email-login' | 'usertype-select' | 'home' | 'host' | 'spot-details' | 'booking-form'
+  const [screen, setScreen] = useState('signup'); // starts at 'signup' as requested first!
   const [phoneNumber, setPhoneNumber] = useState('');
   const [activeOtp, setActiveOtp] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
@@ -62,7 +63,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setScreen('login');
+    setScreen('signup');
     setPhoneNumber('');
     setActiveOtp('');
     setSelectedSpot(null);
@@ -73,12 +74,24 @@ export default function App() {
   // Render stateful screen content inside simulated phone shell
   const renderScreen = () => {
     switch (screen) {
+      case 'signup':
+        return (
+          <SignUp 
+            onSignUpSubmit={(name, email, phone) => {
+              setPhoneNumber(phone);
+              setToastMessage(`Welcome to PARKEE, ${name}! Your account has been created.`);
+              setScreen('usertype-select');
+            }}
+            onNavigateToLogin={() => setScreen('login')}
+          />
+        );
       case 'login':
         return (
           <PhoneLogin
             onSendOTP={handleSendOTP}
             onEmailLogin={() => setScreen('email-login')}
             onGuestLogin={handleGuestLogin}
+            onNavigateSignUp={() => setScreen('signup')}
           />
         );
       case 'verify-otp':
@@ -101,7 +114,7 @@ export default function App() {
         return (
           <UserTypeSelection
             onSelectType={(type) => setScreen(type === 'parker' ? 'home' : 'host')}
-            onBack={() => setScreen('login')}
+            onBack={() => setScreen('signup')}
           />
         );
       case 'home':
@@ -152,10 +165,13 @@ export default function App() {
         );
       default:
         return (
-          <PhoneLogin
-            onSendOTP={handleSendOTP}
-            onEmailLogin={() => setScreen('email-login')}
-            onGuestLogin={handleGuestLogin}
+          <SignUp 
+            onSignUpSubmit={(name, email, phone) => {
+              setPhoneNumber(phone);
+              setToastMessage(`Welcome to PARKEE, ${name}! Your account has been created.`);
+              setScreen('usertype-select');
+            }}
+            onNavigateToLogin={() => setScreen('login')}
           />
         );
     }

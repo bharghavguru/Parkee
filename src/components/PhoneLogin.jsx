@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mail, User, ChevronDown } from 'lucide-react';
 import Logo from './Logo';
 
-export default function PhoneLogin({ onSendOTP, onEmailLogin, onGuestLogin }) {
+export default function PhoneLogin({ onSendOTP, onEmailLogin, onGuestLogin, onNavigateSignUp }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState(false);
 
@@ -91,6 +91,14 @@ export default function PhoneLogin({ onSendOTP, onEmailLogin, onGuestLogin }) {
           </button>
         </div>
       </div>
+
+      {/* Navigation link to Sign Up */}
+      <p className="login-footer" style={{ marginBottom: '8px', cursor: 'pointer' }}>
+        Don't have an account?{' '}
+        <strong className="footer-link" onClick={onNavigateSignUp} style={{ color: 'var(--color-brand)' }}>
+          Sign up
+        </strong>
+      </p>
 
       {/* Footer disclaimer */}
       <p className="login-footer">
