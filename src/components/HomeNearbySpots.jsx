@@ -28,10 +28,10 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
   const allSpots = [
     {
       id: 1,
-      title: '24 Kensington Court',
-      distance: '0.2 miles away',
+      title: '12 Khader Nawaz Khan Road',
+      distance: '0.2 km away',
       type: 'Driveway',
-      price: '4.50',
+      price: '80.00',
       rating: '4.9',
       reviews: 156,
       verified: true,
@@ -41,10 +41,10 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     },
     {
       id: 2,
-      title: 'Skyline Luxury Garage',
-      distance: '0.5 miles away',
+      title: 'T. Nagar Multi-Level Parking',
+      distance: '0.5 km away',
       type: 'Underground',
-      price: '6.00',
+      price: '120.00',
       rating: '4.7',
       reviews: 89,
       verified: false,
@@ -54,10 +54,10 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     },
     {
       id: 3,
-      title: 'Baker Street Parking',
-      distance: '0.8 miles away',
+      title: 'Adyar Private Car Park',
+      distance: '0.8 km away',
       type: 'Private Lot',
-      price: '3.75',
+      price: '60.00',
       rating: '4.5',
       reviews: 210,
       verified: false,
@@ -91,7 +91,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
             />
             <div className="search-location-badge">
               <MapPin size={14} className="location-pin-pink" />
-              <span>London</span>
+              <span>Chennai</span>
             </div>
           </div>
         </div>
@@ -169,7 +169,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
                   <div className="info-main-row">
                     <h3 className="spot-card-title">{spot.title}</h3>
                     <div className="spot-card-price">
-                      <span className="price-val">£{spot.price}</span>
+                      <span className="price-val">₹{spot.price}</span>
                       <span className="price-unit">per hour</span>
                     </div>
                   </div>
@@ -219,21 +219,21 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
           <div className="booking-status active">ACTIVE</div>
           <h3>{activeBooking.spot.title}</h3>
           <p className="booking-time">Oct 24 - Oct 25 (10:00 AM - 01:00 PM)</p>
-          <span className="booking-price">£{activeBooking.price} paid</span>
+          <span className="booking-price">₹{activeBooking.price} paid</span>
         </div>
       )}
 
       <div className="booking-card">
         <div className="booking-status active">ACTIVE</div>
-        <h3>24 Kensington Court</h3>
+        <h3>12 Khader Nawaz Khan Road</h3>
         <p className="booking-time">Today, 2:00 PM - 5:00 PM</p>
-        <span className="booking-price">£13.50 paid</span>
+        <span className="booking-price">₹240.00 paid</span>
       </div>
       <div className="booking-card past">
         <div className="booking-status past-status">COMPLETED</div>
-        <h3>Skyline Luxury Garage</h3>
+        <h3>T. Nagar Multi-Level Parking</h3>
         <p className="booking-time">Yesterday, 10:00 AM - 12:00 PM</p>
-        <span className="booking-price">£12.00 paid</span>
+        <span className="booking-price">₹240.00 paid</span>
       </div>
     </div>
   );

@@ -19,10 +19,10 @@ export default function SpotDetails({ spot, onBack, onBookNow }) {
 
   // Fallback default details if spot is missing
   const activeSpot = spot || {
-    title: '24 Kensington Court',
-    distance: '0.2 miles away',
+    title: '12 Khader Nawaz Khan Road',
+    distance: '0.2 km away',
     type: 'Driveway',
-    price: '4.50',
+    price: '80.00',
     rating: '4.9',
     reviews: 156,
     image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600'
@@ -78,15 +78,15 @@ export default function SpotDetails({ spot, onBack, onBookNow }) {
         <div className="details-title-pricing-row">
           <div className="title-address-cell">
             <h1 className="details-spot-title">{activeSpot.title}</h1>
-            <p className="details-spot-address">Kensington, London W8 5DL</p>
+            <p className="details-spot-address">Khader Nawaz Khan Rd, Nungambakkam, Chennai, Tamil Nadu - 600006</p>
           </div>
           
           <div className="pricing-cell">
             <div className="price-hr-raw">
-              <span className="price-hr-val">£{activeSpot.price}</span>
+              <span className="price-hr-val">₹{activeSpot.price}</span>
               <span className="price-hr-lbl">/hr</span>
             </div>
-            <p className="price-day-raw">£{dayRate}/day</p>
+            <p className="price-day-raw">₹{dayRate}/day</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@ export default function SpotDetails({ spot, onBack, onBookNow }) {
         <div className="details-about-section">
           <h2>About this space</h2>
           <p>
-            Spacious, secure driveway in the heart of Kensington. Perfect for shoppers and local residents. 24/7 access with security cameras. Minutes away from High Street Kensington Station.
+            Spacious, secure driveway located along Khader Nawaz Khan Road in Nungambakkam, Chennai. Perfect for shoppers visiting nearby boutiques and local residents. 24/7 access with active security cameras. Minutes away from Nungambakkam High Road.
           </p>
           <button type="button" className="lbl-read-more">Read more</button>
         </div>
@@ -158,8 +158,8 @@ export default function SpotDetails({ spot, onBack, onBookNow }) {
               <path d="M 240,0 L 220,180" fill="none" stroke="#ffffff" strokeWidth="12" />
               
               {/* Street labels */}
-              <text x="10" y="85" fill="#a0aec0" fontSize="7" fontWeight="bold" transform="rotate(1)">Kensington High Street</text>
-              <text x="148" y="40" fill="#a0aec0" fontSize="7" fontWeight="bold" transform="rotate(82 148 40)">Kensington Court</text>
+              <text x="10" y="85" fill="#a0aec0" fontSize="7" fontWeight="bold" transform="rotate(1)">Nungambakkam High Rd</text>
+              <text x="148" y="40" fill="#a0aec0" fontSize="7" fontWeight="bold" transform="rotate(82 148 40)">KHK Road</text>
 
               {/* Parkee Location Pin Superimposed */}
               <g transform="translate(132, 85)">
@@ -205,7 +205,7 @@ export default function SpotDetails({ spot, onBack, onBookNow }) {
       <footer className="details-bottom-action-bar">
         <div className="total-accounting-box">
           <span className="total-lbl">Total (2 hours)</span>
-          <span className="total-price-val">£{total2Hours}</span>
+          <span className="total-price-val">₹{total2Hours}</span>
         </div>
         
         <button 

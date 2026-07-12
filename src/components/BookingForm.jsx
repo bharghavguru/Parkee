@@ -9,8 +9,8 @@ export default function BookingForm({ spot, onBack, onConfirmBooking }) {
 
   // Fallback defaults
   const activeSpot = spot || {
-    title: '24 Kensington Court',
-    price: '4.50',
+    title: '12 Khader Nawaz Khan Road',
+    price: '80.00',
   };
 
   const hourRate = parseFloat(activeSpot.price);
@@ -165,12 +165,12 @@ export default function BookingForm({ spot, onBack, onConfirmBooking }) {
           <div className="summary-fees-row">
             <div className="fees-item">
               <span className="fee-lbl">RATE</span>
-              <span className="fee-val">£{activeSpot.price}/hr</span>
+              <span className="fee-val">₹{activeSpot.price}/hr</span>
             </div>
 
             <div className="fees-item align-right">
               <span className="fee-lbl">TOTAL PRICE</span>
-              <span className="fee-val-total">£{totalPrice}</span>
+              <span className="fee-val-total">₹{totalPrice}</span>
             </div>
           </div>
         </div>

@@ -19,12 +19,12 @@ import {
 
 export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToHost, onNavigateTab }) {
   const [subPage, setSubPage] = useState(null); // null | 'wallet'
-  const [balance, setBalance] = useState(45.20);
+  const [balance, setBalance] = useState(500.00);
   const [topupAmount, setTopupAmount] = useState('');
   const [isTopupOpen, setIsTopupOpen] = useState(false);
 
   const name = currentUser?.name || 'Alex Johnson';
-  const phone = currentUser?.phone || '+44 7700 900123';
+  const phone = currentUser?.phone || '+91 98765 43210';
   const email = currentUser?.email || 'alex@example.com';
 
   const handleAddCash = (e) => {
@@ -53,7 +53,7 @@ export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToH
           {/* Restored Wallet Card Mockup */}
           <div className="wallet-balance-card" style={{ margin: '0 0 24px 0' }}>
             <span className="wallet-bal-lbl">AVAILABLE BALANCE</span>
-            <h3 style={{ fontSize: '32px', margin: '8px 0 20px 0', fontWeight: '800' }}>£{balance.toFixed(2)}</h3>
+            <h3 style={{ fontSize: '32px', margin: '8px 0 20px 0', fontWeight: '800' }}>₹{balance.toFixed(2)}</h3>
             
             {!isTopupOpen ? (
               <button 
@@ -68,7 +68,7 @@ export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToH
                 <input 
                   type="number" 
                   step="0.01"
-                  placeholder="Amount (£)"
+                  placeholder="Amount (₹)"
                   value={topupAmount}
                   onChange={(e) => setTopupAmount(e.target.value)}
                   className="search-input-field"

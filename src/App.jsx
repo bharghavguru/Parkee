@@ -20,7 +20,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState({
     name: 'Alex Johnson',
     email: 'alex@example.com',
-    phone: '+44 7700 900123'
+    phone: '+91 98765 43210'
   });
 
   // Spots and reservation states
@@ -93,7 +93,7 @@ export default function App() {
     setCurrentUser({
       name: 'Alex Johnson',
       email: 'alex@example.com',
-      phone: '+44 7700 900123'
+      phone: '+91 98765 43210'
     });
   };
 

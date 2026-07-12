@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, PlusCircle, LayoutDashboard, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, PlusCircle, LayoutDashboard, IndianRupee, Calendar } from 'lucide-react';
 import Logo from './Logo';
 
 export default function RenterDashboard({ onBack }) {
@@ -26,7 +26,7 @@ export default function RenterDashboard({ onBack }) {
         <div className="host-analytics-card">
           <div className="analytics-header">
             <span className="analytics-label">TOTAL EARNINGS</span>
-            <DollarSign size={20} className="analytics-icon" />
+            <IndianRupee size={20} className="analytics-icon" />
           </div>
           <p className="analytics-value">₹12,450.00</p>
           <div className="analytics-details">
