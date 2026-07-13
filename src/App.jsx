@@ -9,10 +9,52 @@ import RenterDashboard from './components/RenterDashboard';
 import SpotDetails from './components/SpotDetails';
 import BookingForm from './components/BookingForm';
 import Toast from './components/Toast';
+import ListYourSpace from './components/ListYourSpace';
 
 export default function App() {
   const [screen, setScreen] = useState('signup'); // starts at 'signup' as requested first!
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [spots, setSpots] = useState([
+    {
+      id: 1,
+      title: '12 Khader Nawaz Khan Road',
+      distance: '0.2 km away',
+      type: 'Driveway',
+      price: '80.00',
+      rating: '4.9',
+      reviews: 156,
+      verified: true,
+      cctv: true,
+      security: true,
+      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      id: 2,
+      title: 'T. Nagar Multi-Level Parking',
+      distance: '0.5 km away',
+      type: 'Underground',
+      price: '120.00',
+      rating: '4.7',
+      reviews: 89,
+      verified: false,
+      cctv: true,
+      security: true,
+      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      id: 3,
+      title: 'Adyar Private Car Park',
+      distance: '0.8 km away',
+      type: 'Private Lot',
+      price: '60.00',
+      rating: '4.5',
+      reviews: 210,
+      verified: false,
+      cctv: false,
+      security: false,
+      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=600'
+    }
+  ]);
   const [activeOtp, setActiveOtp] = useState('');
   const [toastMessage, setToastMessage] = useState(null);
   
@@ -156,6 +198,7 @@ export default function App() {
             }}
             activeBooking={activeBooking}
             initialTab={defaultHomeTab}
+            spots={spots}
           />
         );
       case 'spot-details':
@@ -189,6 +232,18 @@ export default function App() {
         return (
           <RenterDashboard
             onBack={() => setScreen('usertype-select')}
+            onListNewSpace={() => setScreen('list-space')}
+          />
+        );
+      case 'list-space':
+        return (
+          <ListYourSpace
+            onBack={() => setScreen('host')}
+            onSubmit={(newSpot) => {
+              setSpots([newSpot, ...spots]);
+              setToastMessage(`Success! New space "${newSpot.title}" has been listed.`);
+              setScreen('host');
+            }}
           />
         );
       default:

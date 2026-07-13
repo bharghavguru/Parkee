@@ -13,19 +13,96 @@ import {
   User, 
   ChevronRight,
   LogOut,
-  CreditCard
+  CreditCard,
+  Wallet,
+  Plus,
+  Minus,
+  Target,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import Logo from './Logo';
 import UserProfile from './UserProfile';
+import chennaiMap from '../assets/chennai_styled_map.png';
 
-export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost, onSelectSpot, activeBooking, initialTab = 'home' }) {
+export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost, onSelectSpot, activeBooking, initialTab = 'home', spots }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(initialTab); // 'home' | 'bookings' | 'messages' | 'profile'
   const [cctvFilter, setCctvFilter] = useState(false);
   const [securityFilter, setSecurityFilter] = useState(false);
 
+  // New Map & Bottom Sheet States
+  const [mapZoom, setMapZoom] = useState('out'); // 'out' | 'in'
+  const [sheetHeight, setSheetHeight] = useState('half'); // 'collapsed' | 'half' | 'full'
+  const [selectedMapSpot, setSelectedMapSpot] = useState(1);
+
+  // Core Central Chennai Spots definition matching User localization requirements
+  const chennaiSpots = [
+    {
+      id: 1,
+      title: '12 Khader Nawaz Khan Road',
+      distance: '0.2 km away',
+      type: 'Driveway',
+      price: '80.00',
+      rating: '4.9',
+      reviews: 128,
+      verified: true,
+      cctv: true,
+      security: true,
+      instant: true,
+      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400',
+      left: '60%', 
+      top: '40%'
+    },
+    {
+      id: 2,
+      title: 'T. Nagar Multi-Level Parking',
+      distance: '0.8 km away',
+      type: 'Garage',
+      price: '120.00',
+      rating: '4.8',
+      reviews: 94,
+      verified: true,
+      cctv: true,
+      security: true,
+      instant: true,
+      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400',
+      left: '25%', 
+      top: '35%'
+    },
+    {
+      id: 3,
+      title: 'Adyar Private Car Park',
+      distance: '2.1 km away',
+      type: 'Driveway',
+      price: '60.00',
+      rating: '4.6',
+      reviews: 43,
+      verified: false,
+      cctv: false,
+      security: false,
+      instant: false,
+      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=400',
+      left: '70%', 
+      top: '68%'
+    }
+  ];
+
+  // Map user host spots to Chennai coordinates to show live synchronization support
+  const customSpots = (spots || []).map((spot, i) => {
+    if (spot.left) return spot;
+    return {
+      ...spot,
+      instant: true,
+      left: `${42 + (i * 8)}%`,
+      top: `${52 - (i * 6)}%`
+    };
+  });
+
+  const allChennaiSpots = [...chennaiSpots, ...customSpots.filter(cs => cs.id > 3)];
+
   // Spot Mock Data
-  const allSpots = [
+  const allSpots = spots || [
     {
       id: 1,
       title: '12 Khader Nawaz Khan Road',
@@ -76,136 +153,201 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
   });
 
   const renderHomeContent = () => {
+    const filteredChennaiSpots = allChennaiSpots.filter(spot => {
+      const matchesSearch = spot.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCctv = !cctvFilter || spot.cctv;
+      const matchesSecurity = !securityFilter || spot.security;
+      return matchesSearch && matchesCctv && matchesSecurity;
+    });
+
+    const activeSpot = filteredChennaiSpots.find(s => s.id === selectedMapSpot) || filteredChennaiSpots[0] || allChennaiSpots[0];
+
+    const toggleSheetHeight = () => {
+      if (sheetHeight === 'collapsed') setSheetHeight('half');
+      else if (sheetHeight === 'half') setSheetHeight('full');
+      else setSheetHeight('collapsed');
+    };
+
     return (
-      <>
-        {/* Search header container */}
-        <div className="home-search-wrapper">
+      <div className="map-view-layout">
+        
+        {/* Floating Search Bar */}
+        <div className="map-search-bar-floating">
           <div className="search-bar-inner">
             <Search size={18} className="search-icon-left" />
             <input 
               type="text" 
-              placeholder="Where do you want to park?"
+              placeholder="Where to? Near Nungambakkam..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="search-input-field"
+              aria-label="Where to search Input"
             />
-            <div className="search-location-badge">
-              <MapPin size={14} className="location-pin-pink" />
-              <span>Chennai</span>
-            </div>
+            <button 
+              type="button" 
+              className="btn-map-filter-control" 
+              onClick={() => setCctvFilter(!cctvFilter)}
+              title="Toggle Security Filters"
+            >
+              <SlidersHorizontal size={18} style={{ color: 'var(--color-brand)' }} />
+            </button>
           </div>
         </div>
 
-        {/* Filter Scroll Chips Row */}
-        <div className="home-filters-row">
+        {/* Map Viewport */}
+        <div className={`map-viewport zoom-${mapZoom}`}>
+          <div className="map-canvas-container">
+            <img src={chennaiMap} alt="Central Chennai Map Background" className="london-map-image" />
+            
+            {/* --- Zoomed Out Clusters --- */}
+            {mapZoom === 'out' && (
+              <>
+                <button 
+                  type="button"
+                  className="map-cluster-badge cluster-1"
+                  onClick={() => { setMapZoom('in'); setSelectedMapSpot(1); }}
+                >
+                  <span>12</span>
+                </button>
+                
+                <button 
+                  type="button"
+                  className="map-cluster-badge cluster-2"
+                  onClick={() => { setMapZoom('in'); setSelectedMapSpot(3); }}
+                >
+                  <span>5</span>
+                </button>
+              </>
+            )}
+
+            {/* --- Zoomed In Individual Pins --- */}
+            {mapZoom === 'in' && (
+              <>
+                {filteredChennaiSpots.map(spot => {
+                  const isSelected = spot.id === selectedMapSpot;
+                  return (
+                    <button
+                      key={spot.id}
+                      type="button"
+                      className={`map-price-pin-marker ${isSelected ? 'selected' : ''}`}
+                      style={{ left: spot.left, top: spot.top }}
+                      onClick={() => setSelectedMapSpot(spot.id)}
+                    >
+                      <span className="price-pin-txt">₹{spot.price}</span>
+                      <div className="price-pin-pointer"></div>
+                    </button>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Floating Navigation Controls */}
+        <div className="map-floating-navigation">
           <button 
             type="button" 
-            className="filter-chip btn-filter-main"
-            onClick={() => { setCctvFilter(false); setSecurityFilter(false); }}
-            title="Reset Filters"
+            className="btn-floating-nav-control" 
+            onClick={() => setMapZoom(mapZoom === 'out' ? 'in' : 'out')}
+            title="Toggle Zoom"
           >
-            <SlidersHorizontal size={14} />
-            <span>Filters</span>
+            {mapZoom === 'out' ? <Plus size={20} /> : <Minus size={20} />}
           </button>
 
           <button 
             type="button" 
-            className={`filter-chip ${cctvFilter ? 'active-chip' : ''}`}
-            onClick={() => setCctvFilter(!cctvFilter)}
+            className="btn-floating-nav-control" 
+            onClick={() => {
+              setMapZoom('in');
+              setSelectedMapSpot(1);
+            }}
+            title="Find My Location"
           >
-            <span>CCTV only</span>
-          </button>
-
-          <button 
-            type="button" 
-            className={`filter-chip ${securityFilter ? 'active-chip' : ''}`}
-            onClick={() => setSecurityFilter(!securityFilter)}
-          >
-            <span>Security</span>
-          </button>
-
-          <button type="button" className="filter-chip">
-            <span>Comfort</span>
+            <Target size={20} />
           </button>
         </div>
 
-        {/* Section title */}
-        <h2 className="nearby-spots-title">Nearby Spots</h2>
+        {/* Swipeable Bottom Sheet */}
+        <div className={`discovery-bottom-sheet height-${sheetHeight}`}>
+          
+          <div className="bottom-sheet-drag-handle-wrap" onClick={toggleSheetHeight}>
+            <div className="bottom-sheet-drag-handle"></div>
+          </div>
 
-        {/* Spots Card Lists */}
-        <div className="spots-cards-list">
-          {filteredSpots.length > 0 ? (
-            filteredSpots.map(spot => (
-              <div 
-                className="spot-card clickable-spot-card" 
-                key={spot.id}
-                onClick={() => onSelectSpot && onSelectSpot(spot)}
-                style={{ cursor: 'pointer' }}
-              >
-                {/* Spot Card Image & badges */}
-                <div className="spot-card-media">
-                  <img src={spot.image} alt={spot.title} className="spot-image" />
-                  
-                  {/* Overlay Badges */}
-                  <div className="spot-badges-overlay">
-                    {spot.verified && (
-                      <span className="badge badge-verify">
-                        <CheckCircle2 size={12} className="badge-icon-left text-orange" />
-                        <span>Verified</span>
-                      </span>
-                    )}
+          <div className="bottom-sheet-header-row">
+            <div className="header-left-headings">
+              <h3 className="bottom-sheet-main-title">Nearby Parking</h3>
+              <span className="bottom-sheet-subtitle">{filteredChennaiSpots.length} spots available near you</span>
+            </div>
+            <button 
+              type="button" 
+              className="bottom-sheet-btn-view-list"
+              onClick={() => setSheetHeight(sheetHeight === 'full' ? 'half' : 'full')}
+            >
+              {sheetHeight === 'full' ? 'Collapse' : 'View List'}
+            </button>
+          </div>
 
-                    {spot.cctv && (
-                      <span className="badge badge-cctv">
-                        <Video size={12} className="badge-icon-left text-orange" />
-                        <span>CCTV</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Spot Card Details */}
-                <div className="spot-card-info">
-                  <div className="info-main-row">
-                    <h3 className="spot-card-title">{spot.title}</h3>
-                    <div className="spot-card-price">
-                      <span className="price-val">₹{spot.price}</span>
-                      <span className="price-unit">per hour</span>
+          <div className="bottom-sheet-scrollable-body">
+            {sheetHeight === 'full' ? (
+              <div className="full-list-layout-wrapper">
+                {filteredChennaiSpots.map(spot => (
+                  <div 
+                    key={spot.id} 
+                    className={`spot-list-preview-card ${spot.id === selectedMapSpot ? 'active-highlight' : ''}`}
+                    onClick={() => {
+                      setSelectedMapSpot(spot.id);
+                      setSheetHeight('half');
+                    }}
+                  >
+                    <img src={spot.image} alt={spot.title} className="spot-preview-card-img" />
+                    <div className="spot-preview-card-info">
+                      <div className="card-title-row">
+                        <span className="card-location-title">{spot.title}</span>
+                        {spot.instant && <span className="card-badge-instant">INSTANT</span>}
+                      </div>
+                      <p className="card-sub-metadata">{spot.distance} • CCTV</p>
+                      <div className="card-rating-price-row">
+                        <div className="card-rating-wrap">
+                          <Star size={12} className="star-card-icon" />
+                          <span className="card-rating-number">{spot.rating}</span>
+                          <span className="card-rating-reviews">({spot.reviews})</span>
+                        </div>
+                        <span className="card-rate-label">₹{spot.price}<span className="card-rate-hr">/hr</span></span>
+                      </div>
                     </div>
                   </div>
-
-                  <p className="spot-card-metadata">
-                    {spot.distance} • {spot.type}
-                  </p>
-
-                  <div className="spot-card-rating">
-                    <Star size={14} className="star-icon-filled" />
-                    <span className="rating-score">{spot.rating}</span>
-                    <span className="reviews-count">({spot.reviews} reviews)</span>
+                ))}
+              </div>
+            ) : (
+              activeSpot && (
+                <div 
+                  className="spot-single-preview-card"
+                  onClick={() => onSelectSpot && onSelectSpot(activeSpot)}
+                >
+                  <img src={activeSpot.image} alt={activeSpot.title} className="spot-preview-card-img" />
+                  <div className="spot-preview-card-info">
+                    <div className="card-title-row">
+                      <span className="card-location-title">{activeSpot.title}</span>
+                      {activeSpot.instant && <span className="card-badge-instant">INSTANT</span>}
+                    </div>
+                    <p className="card-sub-metadata">{activeSpot.distance} • CCTV</p>
+                    <div className="card-rating-price-row">
+                      <div className="card-rating-wrap">
+                        <Star size={12} className="star-card-icon" />
+                        <span className="card-rating-number">{activeSpot.rating}</span>
+                        <span className="card-rating-reviews">({activeSpot.reviews})</span>
+                      </div>
+                      <span className="card-rate-label">₹{activeSpot.price}<span className="card-rate-hr">/hr</span></span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <div className="spots-empty-state">
-              <p>No parking spots match your filters.</p>
-              <button 
-                type="button" 
-                className="btn btn-outline" 
-                onClick={() => { setSearchQuery(''); setCctvFilter(false); setSecurityFilter(false); }}
-                style={{ width: 'auto', marginTop: '12px' }}
-              >
-                Clear all filters
-              </button>
-            </div>
-          )}
+              )
+            )}
+          </div>
         </div>
 
-        {/* Floating Action Map Button */}
-        <button type="button" className="floating-map-btn" aria-label="Open map view">
-          <Map size={24} className="fab-map-icon" />
-        </button>
-      </>
+      </div>
     );
   };
 
@@ -238,68 +380,40 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     </div>
   );
 
-  const renderMessagesContent = () => (
-    <div className="subtab-container">
-      <h2 className="subtab-title">Messages</h2>
-      
-      <div className="booking-card" style={{ cursor: 'pointer', padding: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img 
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=80" 
-            alt="Sarah W. Avatar" 
-            style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--color-border)' }}
-          />
-          <div style={{ flex: 1, textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '750', color: 'var(--color-brand)' }}>Sarah W.</h3>
-              <span style={{ fontSize: '10px', color: '#a0aec0', fontWeight: '600' }}>10:42 AM</span>
-            </div>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#718096', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Sure, the parking gate code is #4024. Let me know if you need help finding...
-            </p>
-          </div>
+  const renderWalletContent = () => {
+    return (
+      <div className="subtab-container" style={{ padding: '0 8px' }}>
+        <h2 className="subtab-title">My Wallet</h2>
+        
+        {/* Wallet Balance Card mockup */}
+        <div className="wallet-balance-card" style={{ margin: '0 0 24px 0', background: 'var(--color-brand)', color: '#ffffff', padding: '24px', borderRadius: '20px', boxShadow: 'var(--shadow-md)', textAlign: 'left' }}>
+          <span className="wallet-bal-lbl" style={{ opacity: 0.8, fontSize: '11px', fontWeight: '750', letterSpacing: '0.8px' }}>AVAILABLE BALANCE</span>
+          <h3 style={{ fontSize: '32px', margin: '8px 0 20px 0', fontWeight: '800' }}>₹500.00</h3>
+          <button type="button" className="btn btn-primary btn-block" style={{ background: 'var(--color-green)', color: '#ffffff', borderRadius: '12px', height: '42px', fontSize: '14px', fontWeight: '700', border: 'none' }}>
+            Add Cash
+          </button>
         </div>
-      </div>
 
-      <div className="booking-card" style={{ cursor: 'pointer', padding: '16px', opacity: 0.85 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ 
-            width: '42px', 
-            height: '42px', 
-            borderRadius: '50%', 
-            backgroundColor: 'rgba(11, 46, 92, 0.1)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justify: 'center',
-            color: 'var(--color-brand)',
-            fontSize: '12px',
-            fontWeight: '800',
-            alignContent: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            lineHeight: '42px'
-          }}>
-            PK
-          </div>
-          <div style={{ flex: 1, textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '750', color: 'var(--color-brand)' }}>PARKEE Support</h3>
-              <span style={{ fontSize: '10px', color: '#a0aec0', fontWeight: '600' }}>Yesterday</span>
-            </div>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#718096', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Your account verification check has been successfully completed. You may now...
-            </p>
+        <h3 className="section-subtitle" style={{ textAlign: 'left', fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)', marginBottom: '12px' }}>
+          Saved Payment Methods
+        </h3>
+        
+        <div className="saved-card-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '16px' }}>
+          <CreditCard size={20} className="card-icon" style={{ color: 'var(--color-brand)' }} />
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '700', color: 'var(--color-brand)' }}>Visa ending in 4242</p>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--color-text-muted)' }}>Expires 12/28</p>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderTabContent = () => {
     switch(activeTab) {
       case 'home': return renderHomeContent();
       case 'bookings': return renderBookingsContent();
-      case 'messages': return renderMessagesContent();
+      case 'wallet': return renderWalletContent();
       case 'profile':
         return (
           <UserProfile 
@@ -325,7 +439,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
           </div>
           <button type="button" className="profile-avatar-btn" onClick={() => setActiveTab('profile')}>
             <img 
-              src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=100" 
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" 
               alt="User profile menu" 
               className="user-profile-avatar"
             />
@@ -334,7 +448,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       )}
 
       {/* Dynamic Body Content */}
-      <div className={`home-tab-content-body ${activeTab === 'profile' ? 'profile-body-full' : ''}`}>
+      <div className={`home-tab-content-body ${activeTab === 'profile' ? 'profile-body-full' : ''} ${activeTab === 'home' ? 'map-body-full' : ''}`}>
         {renderTabContent()}
       </div>
 
@@ -345,8 +459,8 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
           className={`nav-tab-item ${activeTab === 'home' ? 'active-tab' : ''}`}
           onClick={() => setActiveTab('home')}
         >
-          <Search size={20} className="tab-icon" />
-          <span>Explore</span>
+          <MapPin size={20} className="tab-icon" />
+          <span>Home</span>
           {activeTab === 'home' && <div className="active-tab-indicator"></div>}
         </button>
 
@@ -362,21 +476,12 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
 
         <button 
           type="button" 
-          className="nav-tab-item"
-          onClick={onSwitchToHost}
+          className={`nav-tab-item ${activeTab === 'wallet' ? 'active-tab' : ''}`}
+          onClick={() => setActiveTab('wallet')}
         >
-          <Car size={20} className="tab-icon" />
-          <span>Host</span>
-        </button>
-
-        <button 
-          type="button" 
-          className={`nav-tab-item ${activeTab === 'messages' ? 'active-tab' : ''}`}
-          onClick={() => setActiveTab('messages')}
-        >
-          <MessageSquare size={20} className="tab-icon" />
-          <span>Messages</span>
-          {activeTab === 'messages' && <div className="active-tab-indicator"></div>}
+          <Wallet size={20} className="tab-icon" />
+          <span>Wallet</span>
+          {activeTab === 'wallet' && <div className="active-tab-indicator"></div>}
         </button>
 
         <button 

@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowLeft, PlusCircle, LayoutDashboard, IndianRupee, Calendar } from 'lucide-react';
 import Logo from './Logo';
 
-export default function RenterDashboard({ onBack }) {
+export default function RenterDashboard({ onBack, onListNewSpace }) {
   return (
     <div className="login-screen-animation host-portal-wrapper">
       {/* Navigation Header */}
@@ -43,7 +43,7 @@ export default function RenterDashboard({ onBack }) {
 
         {/* Host Actions Grid */}
         <div className="host-actions-list">
-          <button type="button" className="btn btn-primary host-action-btn">
+          <button type="button" className="btn btn-primary host-action-btn" onClick={onListNewSpace}>
             <PlusCircle size={18} className="btn-icon-left" />
             <span>List a New Space</span>
           </button>
