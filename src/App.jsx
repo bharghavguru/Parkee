@@ -233,6 +233,11 @@ export default function App() {
           <RenterDashboard
             onBack={() => setScreen('usertype-select')}
             onListNewSpace={() => setScreen('list-space')}
+            onNavigateRenter={(tab) => {
+              setDefaultHomeTab(tab);
+              setScreen('home');
+            }}
+            spots={spots}
           />
         );
       case 'list-space':

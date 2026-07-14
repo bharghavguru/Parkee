@@ -19,7 +19,8 @@ import {
   Minus,
   Target,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Home
 } from 'lucide-react';
 import Logo from './Logo';
 import UserProfile from './UserProfile';
@@ -459,8 +460,8 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
           className={`nav-tab-item ${activeTab === 'home' ? 'active-tab' : ''}`}
           onClick={() => setActiveTab('home')}
         >
-          <MapPin size={20} className="tab-icon" />
-          <span>Home</span>
+          <Search size={20} className="tab-icon" />
+          <span>Search</span>
           {activeTab === 'home' && <div className="active-tab-indicator"></div>}
         </button>
 
@@ -472,6 +473,15 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
           <ClipboardList size={20} className="tab-icon" />
           <span>Bookings</span>
           {activeTab === 'bookings' && <div className="active-tab-indicator"></div>}
+        </button>
+
+        <button 
+          type="button" 
+          className="nav-tab-item"
+          onClick={() => onSwitchToHost && onSwitchToHost()}
+        >
+          <Home size={20} className="tab-icon" />
+          <span>Host</span>
         </button>
 
         <button 

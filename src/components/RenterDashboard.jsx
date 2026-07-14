@@ -1,68 +1,375 @@
-import React from 'react';
-import { ArrowLeft, PlusCircle, LayoutDashboard, IndianRupee, Calendar } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  ArrowLeft, 
+  PlusCircle, 
+  LayoutDashboard, 
+  IndianRupee, 
+  Calendar, 
+  SlidersHorizontal, 
+  Plus, 
+  Menu, 
+  Search, 
+  ClipboardList, 
+  Wallet, 
+  User, 
+  Home, 
+  MapPin 
+} from 'lucide-react';
 import Logo from './Logo';
 
-export default function RenterDashboard({ onBack, onListNewSpace }) {
-  return (
-    <div className="login-screen-animation host-portal-wrapper">
-      {/* Navigation Header */}
-      <div className="verify-nav-header">
-        <button type="button" className="btn-back-link" onClick={onBack} aria-label="Go back to selection">
-          <ArrowLeft size={22} className="back-arrow-icon" />
+export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRenter, spots }) {
+  const [view, setView] = useState('manage'); // 'dashboard' | 'manage' (defaults to 'manage' per user request)
+
+  // Default localized host parking spots definitions (matching Kensington etc, but Chennai)
+  const defaultHostSpots = [
+    {
+      id: 'hs1',
+      title: '12 Khader Nawaz Khan Road',
+      location: 'Nungambakkam, Chennai',
+      status: 'ACTIVE',
+      price: '80.00',
+      bookingsMtd: '28 sessions',
+      totalEarned: '22,400.00',
+      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'hs2',
+      title: 'T. Nagar Multi-Level Parking',
+      location: 'T. Nagar, Chennai',
+      status: 'PENDING REVIEW',
+      price: '120.00',
+      bookingsMtd: '0 sessions',
+      totalEarned: '0.00',
+      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'hs3',
+      title: 'Adyar Private Car Park',
+      location: 'Adyar, Chennai',
+      status: 'HIDDEN',
+      price: '60.00',
+      bookingsMtd: '12 sessions',
+      totalEarned: '7,200.00',
+      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=400'
+    }
+  ];
+
+  // Derive any dynamically added spaces from the lists
+  const userAddedSpots = (spots || []).filter(s => s.id > 3).map(s => ({
+    id: `user-${s.id}`,
+    title: s.title,
+    location: s.title.includes(',') ? s.title : `${s.title}, Chennai`,
+    status: 'ACTIVE',
+    price: s.price,
+    bookingsMtd: '0 sessions',
+    totalEarned: '0.00',
+    image: s.image
+  }));
+
+  const allHostSpots = [...defaultHostSpots, ...userAddedSpots];
+
+  // Calculate dynamic Total Active Spots
+  const activeSpotsCount = allHostSpots.filter(s => s.status === 'ACTIVE').length;
+
+  // Calculate total earnings display based on default + user added
+  const staticEarnings = 29600.00; // 22400 (hs1) + 7200 (hs3)
+  const totalEarningsInRupees = staticEarnings; // Can be formatted as needed
+
+  const renderDashboardView = () => (
+    <div className="verify-container">
+      <div className="verify-brand-logo">
+        <Logo size="small" showText={false} />
+      </div>
+
+      <h1 className="verify-title">Hosting Dashboard</h1>
+      <p className="verify-subtitle">Manage your garage, driveway, and earnings</p>
+
+      {/* Analytics Card */}
+      <div className="host-analytics-card">
+        <div className="analytics-header">
+          <span className="analytics-label">TOTAL EARNINGS</span>
+          <IndianRupee size={20} className="analytics-icon" />
+        </div>
+        <p className="analytics-value">₹{totalEarningsInRupees.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+        <div className="analytics-details">
+          <div className="detail-stat">
+            <span className="stat-label">Active Spots</span>
+            <span className="stat-val">{activeSpotsCount}</span>
+          </div>
+          <div className="detail-stat border-stat-left">
+            <span className="stat-label">Bookings (MTD)</span>
+            <span className="stat-val">40</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Host Actions Grid */}
+      <div className="host-actions-list">
+        <button type="button" className="btn btn-primary host-action-btn" onClick={onListNewSpace}>
+          <PlusCircle size={18} className="btn-icon-left" />
+          <span>List a New Space</span>
         </button>
-        <span className="verify-nav-title">Host Portal</span>
-        <div style={{ width: '22px' }}></div>
+        
+        <button type="button" className="btn btn-outline host-action-btn-secondary" onClick={() => setView('manage')}>
+          <LayoutDashboard size={18} className="btn-icon-left" />
+          <span>Manage My Spaces</span>
+        </button>
+
+        <button type="button" className="btn btn-outline host-action-btn-secondary">
+          <Calendar size={18} className="btn-icon-left" />
+          <span>Active Reservations</span>
+        </button>
       </div>
 
-      <div className="verify-container">
-        <div className="verify-brand-logo">
-          <Logo size="small" showText={false} />
-        </div>
+      <p className="host-footer-tip">
+        Need help setting up your driveway? Contact PARKEE Host Support.
+      </p>
+    </div>
+  );
 
-        <h1 className="verify-title">Hosting Dashboard</h1>
-        <p className="verify-subtitle">Manage your garage, driveway, and earnings</p>
-
-        {/* Analytics Card */}
-        <div className="host-analytics-card">
-          <div className="analytics-header">
-            <span className="analytics-label">TOTAL EARNINGS</span>
-            <IndianRupee size={20} className="analytics-icon" />
+  const renderManageView = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      
+      {/* Title Header area matching the screenshot */}
+      <div className="host-portal-header-section" style={{ padding: '20px 16px 12px 16px', textAlign: 'left' }}>
+        <span className="host-portal-tag" style={{ color: 'var(--color-green)', fontSize: '11px', fontWeight: '750', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Host Portal</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+          <h1 className="host-portal-title" style={{ fontSize: '24px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>My Parking Spots</h1>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button" className="btn-filter-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', border: '1px solid var(--color-border)', borderRadius: '12px', background: '#ffffff', cursor: 'pointer' }}>
+              <SlidersHorizontal size={16} style={{ color: 'var(--color-brand)' }} />
+            </button>
+            <button 
+              type="button" 
+              className="btn-add-new-header" 
+              onClick={onListNewSpace}
+              style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--color-brand)', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0 14px', fontSize: '12px', fontWeight: '750', height: '38px', cursor: 'pointer' }}
+            >
+              <Plus size={14} strokeWidth={3} />
+              <span>ADD NEW</span>
+            </button>
           </div>
-          <p className="analytics-value">₹12,450.00</p>
-          <div className="analytics-details">
-            <div className="detail-stat">
-              <span className="stat-label">Active Spots</span>
-              <span className="stat-val">2</span>
-            </div>
-            <div className="detail-stat border-stat-left">
-              <span className="stat-label">Bookings</span>
-              <span className="stat-val">46</span>
-            </div>
-          </div>
         </div>
-
-        {/* Host Actions Grid */}
-        <div className="host-actions-list">
-          <button type="button" className="btn btn-primary host-action-btn" onClick={onListNewSpace}>
-            <PlusCircle size={18} className="btn-icon-left" />
-            <span>List a New Space</span>
-          </button>
-          
-          <button type="button" className="btn btn-outline host-action-btn-secondary">
-            <LayoutDashboard size={18} className="btn-icon-left" />
-            <span>Manage My Spaces</span>
-          </button>
-
-          <button type="button" className="btn btn-outline host-action-btn-secondary">
-            <Calendar size={18} className="btn-icon-left" />
-            <span>Active Reservations</span>
-          </button>
-        </div>
-
-        <p className="host-footer-tip">
-          Need help setting up your driveway? Contact PARKEE Host Support.
-        </p>
       </div>
+
+      {/* Summary Row Cards */}
+      <div className="host-summary-row" style={{ display: 'flex', gap: '12px', padding: '0 16px 16px 16px', flexShrink: 0 }}>
+        {/* Card 1: Total Active Spots */}
+        <div className="summary-status-card" style={{ flex: 1, backgroundColor: 'var(--color-brand)', color: '#ffffff', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
+          <span style={{ fontSize: '11px', opacity: 0.7, fontWeight: '700' }}>Total Active Spots</span>
+          <span style={{ fontSize: '28px', fontWeight: '800', lineHeight: 1.1 }}>{activeSpotsCount}</span>
+        </div>
+        {/* Card 2: Monthly Earnings */}
+        <div className="summary-status-card" style={{ flex: 1, backgroundColor: '#86efac', color: 'var(--color-brand)', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
+          <span style={{ fontSize: '11px', opacity: 0.8, fontWeight: '700' }}>Monthly Earnings</span>
+          <span style={{ fontSize: '20px', fontWeight: '800', lineHeight: 1.1 }}>₹1,03,500.00</span>
+        </div>
+      </div>
+
+      {/* Spots list scrollable area */}
+      <div className="host-spots-list" style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, paddingBottom: '30px' }}>
+        {allHostSpots.map(spot => (
+          <div key={spot.id} className="host-spot-card" style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+            {/* Top section: Avatar, Info, Status Badge */}
+            <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <img src={spot.image} alt={spot.title} style={{ width: '80px', height: '80px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0 }} />
+              <div style={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{spot.title}</h3>
+                  <span className={`status-badge-${spot.status.toLowerCase().replace(' ', '-')}`} style={{ 
+                    fontSize: '9px', 
+                    fontWeight: '800', 
+                    padding: '3px 8px', 
+                    borderRadius: '20px', 
+                    letterSpacing: '0.3px',
+                    flexShrink: 0,
+                    backgroundColor: spot.status === 'ACTIVE' ? 'rgba(0, 108, 53, 0.1)' : spot.status === 'PENDING REVIEW' ? 'rgba(217, 119, 6, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+                    color: spot.status === 'ACTIVE' ? '#006C35' : spot.status === 'PENDING REVIEW' ? '#B45309' : '#475569'
+                  }}>
+                    {spot.status}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', color: 'var(--color-text-muted)', fontSize: '12px', fontWeight: '550' }}>
+                  <MapPin size={13} style={{ color: 'var(--color-green)' }} />
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{spot.location}</span>
+                </div>
+
+                <p style={{ margin: '8px 0 0 0', fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)' }}>
+                  ₹{spot.price} <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '500' }}>/ hour</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '14px 0' }} />
+
+            {/* Stats row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'left', marginBottom: '14px' }}>
+              <div>
+                <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Bookings (MTD)</span>
+                <p style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: '800', color: 'var(--color-brand)' }}>{spot.bookingsMtd}</p>
+              </div>
+              <div>
+                <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Total Earned</span>
+                <p style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: '800', color: '#006C35' }}>₹{spot.totalEarned}</p>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="button" className="btn btn-outline" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)', padding: 0 }}>
+                EDIT
+              </button>
+              {spot.status === 'ACTIVE' && (
+                <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: 'var(--color-brand)', color: '#ffffff', padding: 0 }}>
+                  VIEW DETAILS
+                </button>
+              )}
+              {spot.status === 'PENDING REVIEW' && (
+                <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#cbd5e1', color: '#475569', cursor: 'not-allowed', padding: 0 }} disabled>
+                  WITHDRAW
+                </button>
+              )}
+              {spot.status === 'HIDDEN' && (
+                <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff', padding: 0 }}>
+                  RE-ACTIVATE
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {/* Got another space dotted button wrapper */}
+        <button 
+          type="button" 
+          onClick={onListNewSpace}
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '8px', 
+            padding: '20px', 
+            borderRadius: '20px', 
+            border: '2px dashed var(--color-border)', 
+            background: 'rgba(241, 245, 249, 0.4)', 
+            cursor: 'pointer',
+            width: '100%',
+            outline: 'none',
+            transition: 'all 0.2s',
+            color: 'var(--color-brand)',
+            fontFamily: 'inherit'
+          }}
+        >
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#ffffff', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Plus size={20} style={{ color: 'var(--color-text-muted)' }} />
+          </div>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-text-muted)' }}>
+            Got another space? <span style={{ color: 'var(--color-brand)', fontWeight: '750' }}>List it now</span> to start earning.
+          </div>
+        </button>
+      </div>
+
+    </div>
+  );
+
+  return (
+    <div className="login-screen-animation host-portal-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      
+      {/* Navigation Header */}
+      <header className="home-top-bar" style={{ flexShrink: 0 }}>
+        <div className="home-logo-wrap" style={{ display: 'flex', alignItems: 'center' }}>
+          {view === 'manage' ? (
+            <button 
+              type="button" 
+              className="btn-back-link" 
+              onClick={() => setView('dashboard')} 
+              aria-label="Go back to host dashboard"
+              style={{ background: 'none', border: 'none', padding: '0 8px 0 0', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
+            >
+              <ArrowLeft size={22} className="back-arrow-icon" />
+            </button>
+          ) : (
+            <button 
+              type="button" 
+              className="btn-back-link" 
+              onClick={onBack} 
+              aria-label="Go back to role selection"
+              style={{ background: 'none', border: 'none', padding: '0 8px 0 0', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
+            >
+              <ArrowLeft size={22} className="back-arrow-icon" />
+            </button>
+          )}
+
+          <button type="button" className="btn-menu-hamburger" style={{ background: 'none', border: 'none', padding: '0 8px 0 0', display: 'flex', alignItems: 'center', color: 'var(--color-brand)' }}>
+            <Menu size={22} />
+          </button>
+          <span className="home-brand-title">PARKEE</span>
+        </div>
+        
+        <button type="button" className="profile-avatar-btn" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => onNavigateRenter && onNavigateRenter('profile')}>
+          <img 
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" 
+            alt="User profile menu" 
+            className="user-profile-avatar"
+          />
+        </button>
+      </header>
+
+      {/* Main Body view content */}
+      <div style={{ flex: 1, overflowHidden: 'hidden', minHeight: 0 }}>
+        {view === 'dashboard' ? renderDashboardView() : renderManageView()}
+      </div>
+
+      {/* Bottom Sticky Tab Navigation */}
+      <footer className="home-bottom-navbar" style={{ flexShrink: 0 }}>
+        <button 
+          type="button" 
+          className="nav-tab-item"
+          onClick={() => onNavigateRenter && onNavigateRenter('home')}
+        >
+          <Search size={20} className="tab-icon" />
+          <span>Search</span>
+        </button>
+
+        <button 
+          type="button" 
+          className="nav-tab-item"
+          onClick={() => onNavigateRenter && onNavigateRenter('bookings')}
+        >
+          <ClipboardList size={20} className="tab-icon" />
+          <span>Bookings</span>
+        </button>
+
+        <button 
+          type="button" 
+          className="nav-tab-item active-tab"
+        >
+          <Home size={20} className="tab-icon" />
+          <span>Host</span>
+          <div className="active-tab-indicator"></div>
+        </button>
+
+        <button 
+          type="button" 
+          className="nav-tab-item"
+          onClick={() => onNavigateRenter && onNavigateRenter('wallet')}
+        >
+          <Wallet size={20} className="tab-icon" />
+          <span>Wallet</span>
+        </button>
+
+        <button 
+          type="button" 
+          className="nav-tab-item"
+          onClick={() => onNavigateRenter && onNavigateRenter('profile')}
+        >
+          <User size={20} className="tab-icon" />
+          <span>Profile</span>
+        </button>
+      </footer>
+
     </div>
   );
 }
