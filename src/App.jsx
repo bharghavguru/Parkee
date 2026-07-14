@@ -12,63 +12,179 @@ import Toast from './components/Toast';
 import ListYourSpace from './components/ListYourSpace';
 
 export default function App() {
-  const [screen, setScreen] = useState('signup'); // starts at 'signup' as requested first!
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [spots, setSpots] = useState([
-    {
-      id: 1,
-      title: '12 Khader Nawaz Khan Road',
-      distance: '0.2 km away',
-      type: 'Driveway',
-      price: '80.00',
-      rating: '4.9',
-      reviews: 156,
-      verified: true,
-      cctv: true,
-      security: true,
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      id: 2,
-      title: 'T. Nagar Multi-Level Parking',
-      distance: '0.5 km away',
-      type: 'Underground',
-      price: '120.00',
-      rating: '4.7',
-      reviews: 89,
-      verified: false,
-      cctv: true,
-      security: true,
-      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      id: 3,
-      title: 'Adyar Private Car Park',
-      distance: '0.8 km away',
-      type: 'Private Lot',
-      price: '60.00',
-      rating: '4.5',
-      reviews: 210,
-      verified: false,
-      cctv: false,
-      security: false,
-      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=600'
+  // Safe storage helpers
+  const getStorageItem = (key, fallback) => {
+    try {
+      const val = localStorage.getItem(key);
+      return val !== null ? val : fallback;
+    } catch (e) {
+      return fallback;
     }
-  ]);
-  const [activeOtp, setActiveOtp] = useState('');
+  };
+
+  const setStorageItem = (key, val) => {
+    try {
+      localStorage.setItem(key, val);
+    } catch (e) {}
+  };
+
+  const removeStorageItem = (key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {}
+  };
+
+  const [screen, setScreenState] = useState(() => getStorageItem('parkee_screen', 'signup'));
+  const setScreen = (newVal) => {
+    setStorageItem('parkee_screen', newVal);
+    setScreenState(newVal);
+  };
+
+  const [phoneNumber, setPhoneNumberState] = useState(() => getStorageItem('parkee_phone', ''));
+  const setPhoneNumber = (newVal) => {
+    setStorageItem('parkee_phone', newVal);
+    setPhoneNumberState(newVal);
+  };
+
+  const [spots, setSpotsState] = useState(() => {
+    const saved = getStorageItem('parkee_spots', null);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return [
+      {
+        id: 1,
+        title: '12 Khader Nawaz Khan Road',
+        distance: '0.2 km away',
+        type: 'Driveway',
+        price: '80.00',
+        rating: '4.9',
+        reviews: 156,
+        verified: true,
+        cctv: true,
+        security: true,
+        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600'
+      },
+      {
+        id: 2,
+        title: 'T. Nagar Multi-Level Parking',
+        distance: '0.5 km away',
+        type: 'Underground',
+        price: '120.00',
+        rating: '4.7',
+        reviews: 89,
+        verified: false,
+        cctv: true,
+        security: true,
+        image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=600'
+      },
+      {
+        id: 3,
+        title: 'Adyar Private Car Park',
+        distance: '0.8 km away',
+        type: 'Private Lot',
+        price: '60.00',
+        rating: '4.5',
+        reviews: 210,
+        verified: false,
+        cctv: false,
+        security: false,
+        image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=600'
+      }
+    ];
+  });
+  const setSpots = (newVal) => {
+    if (typeof newVal === 'function') {
+      setSpotsState((prev) => {
+        const next = newVal(prev);
+        setStorageItem('parkee_spots', JSON.stringify(next));
+        return next;
+      });
+    } else {
+      setStorageItem('parkee_spots', JSON.stringify(newVal));
+      setSpotsState(newVal);
+    }
+  };
+
+  const [activeOtp, setActiveOtpState] = useState(() => getStorageItem('parkee_otp', ''));
+  const setActiveOtp = (newVal) => {
+    setStorageItem('parkee_otp', newVal);
+    setActiveOtpState(newVal);
+  };
+
   const [toastMessage, setToastMessage] = useState(null);
   
   // Real-time user session status
-  const [currentUser, setCurrentUser] = useState({
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
-    phone: '+91 98765 43210'
+  const [currentUser, setCurrentUserState] = useState(() => {
+    const saved = getStorageItem('parkee_current_user', null);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return {
+      name: 'Alex Johnson',
+      email: 'alex@example.com',
+      phone: '+91 98765 43210'
+    };
   });
+  const setCurrentUser = (newVal) => {
+    if (typeof newVal === 'function') {
+      setCurrentUserState((prev) => {
+        const next = newVal(prev);
+        setStorageItem('parkee_current_user', JSON.stringify(next));
+        return next;
+      });
+    } else {
+      setStorageItem('parkee_current_user', JSON.stringify(newVal));
+      setCurrentUserState(newVal);
+    }
+  };
 
   // Spots and reservation states
-  const [selectedSpot, setSelectedSpot] = useState(null);
-  const [activeBooking, setActiveBooking] = useState(null);
-  const [defaultHomeTab, setDefaultHomeTab] = useState('home');
+  const [selectedSpot, setSelectedSpotState] = useState(() => {
+    const saved = getStorageItem('parkee_selected_spot', null);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return null;
+  });
+  const setSelectedSpot = (newVal) => {
+    if (newVal) {
+      setStorageItem('parkee_selected_spot', JSON.stringify(newVal));
+    } else {
+      removeStorageItem('parkee_selected_spot');
+    }
+    setSelectedSpotState(newVal);
+  };
+
+  const [activeBooking, setActiveBookingState] = useState(() => {
+    const saved = getStorageItem('parkee_active_booking', null);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return null;
+  });
+  const setActiveBooking = (newVal) => {
+    if (newVal) {
+      setStorageItem('parkee_active_booking', JSON.stringify(newVal));
+    } else {
+      removeStorageItem('parkee_active_booking');
+    }
+    setActiveBookingState(newVal);
+  };
+
+  const [defaultHomeTab, setDefaultHomeTabState] = useState(() => getStorageItem('parkee_home_tab', 'home'));
+  const setDefaultHomeTab = (newVal) => {
+    setStorageItem('parkee_home_tab', newVal);
+    setDefaultHomeTabState(newVal);
+  };
 
   // Generate a random 6-digit OTP code programmatically
   const generateOTP = () => {
@@ -126,13 +242,22 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setScreen('signup');
-    setPhoneNumber('');
-    setActiveOtp('');
-    setSelectedSpot(null);
-    setActiveBooking(null);
-    setDefaultHomeTab('home');
-    setCurrentUser({
+    removeStorageItem('parkee_screen');
+    removeStorageItem('parkee_phone');
+    removeStorageItem('parkee_otp');
+    removeStorageItem('parkee_selected_spot');
+    removeStorageItem('parkee_active_booking');
+    removeStorageItem('parkee_home_tab');
+    removeStorageItem('parkee_current_user');
+    removeStorageItem('parkee_spots');
+
+    setScreenState('signup');
+    setPhoneNumberState('');
+    setActiveOtpState('');
+    setSelectedSpotState(null);
+    setActiveBookingState(null);
+    setDefaultHomeTabState('home');
+    setCurrentUserState({
       name: 'Alex Johnson',
       email: 'alex@example.com',
       phone: '+91 98765 43210'
