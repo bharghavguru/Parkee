@@ -180,7 +180,7 @@ export default function App() {
     setActiveBookingState(newVal);
   };
 
-  const [defaultHomeTab, setDefaultHomeTabState] = useState(() => getStorageItem('parkee_home_tab', 'home'));
+  const [defaultHomeTab, setDefaultHomeTabState] = useState('home');
   const setDefaultHomeTab = (newVal) => {
     setStorageItem('parkee_home_tab', newVal);
     setDefaultHomeTabState(newVal);
