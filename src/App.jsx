@@ -34,7 +34,7 @@ export default function App() {
     } catch (e) {}
   };
 
-  const [screen, setScreenState] = useState(() => getStorageItem('parkee_screen', 'signup'));
+  const [screen, setScreenState] = useState(() => getStorageItem('parkee_screen', 'home'));
   const setScreen = (newVal) => {
     setStorageItem('parkee_screen', newVal);
     setScreenState(newVal);
