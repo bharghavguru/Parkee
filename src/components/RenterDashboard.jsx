@@ -13,12 +13,16 @@ import {
   Wallet, 
   User, 
   Home, 
-  MapPin 
+  MapPin,
+  MessageSquare,
+  Bell,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import Logo from './Logo';
 
 export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRenter, spots }) {
-  const [view, setView] = useState('manage'); // 'dashboard' | 'manage' (defaults to 'manage' per user request)
+  const [view, setView] = useState('reservations'); // Default to 'reservations' as requested by user
 
   // Default localized host parking spots definitions (matching Kensington etc, but Chennai)
   const defaultHostSpots = [
@@ -73,7 +77,73 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
 
   // Calculate total earnings display based on default + user added
   const staticEarnings = 29600.00; // 22400 (hs1) + 7200 (hs3)
-  const totalEarningsInRupees = staticEarnings; // Can be formatted as needed
+  const totalEarningsInRupees = staticEarnings;
+
+  const renderHeader = () => {
+    if (view === 'reservations') {
+      return (
+        <header className="home-top-bar" style={{ flexShrink: 0, justifyContent: 'space-between', display: 'flex', alignItems: 'center' }}>
+          <button 
+            type="button" 
+            className="btn-menu-hamburger" 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
+          >
+            <Menu size={22} />
+          </button>
+          <span className="home-brand-title" style={{ fontSize: '17px', fontWeight: '800', color: 'var(--color-brand)', flex: 1, textAlign: 'center' }}>Active Reservations</span>
+          <button 
+            type="button" 
+            className="btn-notification-bell" 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
+          >
+            <Bell size={22} />
+          </button>
+        </header>
+      );
+    }
+    
+    // For other views (dashboard, manage/spots, or earnings), keep the brand styling
+    return (
+      <header className="home-top-bar" style={{ flexShrink: 0 }}>
+        <div className="home-logo-wrap" style={{ display: 'flex', alignItems: 'center' }}>
+          {view !== 'dashboard' ? (
+            <button 
+              type="button" 
+              className="btn-back-link" 
+              onClick={() => setView('dashboard')} 
+              aria-label="Go back to host dashboard"
+              style={{ background: 'none', border: 'none', padding: '0 8px 0 0', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
+            >
+              <ArrowLeft size={22} className="back-arrow-icon" />
+            </button>
+          ) : (
+            <button 
+              type="button" 
+              className="btn-back-link" 
+              onClick={onBack} 
+              aria-label="Go back to role selection"
+              style={{ background: 'none', border: 'none', padding: '0 8px 0 0', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
+            >
+              <ArrowLeft size={22} className="back-arrow-icon" />
+            </button>
+          )}
+
+          <button type="button" className="btn-menu-hamburger" style={{ background: 'none', border: 'none', padding: '0 8px 0 0', display: 'flex', alignItems: 'center', color: 'var(--color-brand)' }}>
+            <Menu size={22} />
+          </button>
+          <span className="home-brand-title">PARKEE</span>
+        </div>
+        
+        <button type="button" className="profile-avatar-btn" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => onNavigateRenter && onNavigateRenter('profile')}>
+          <img 
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" 
+            alt="User profile menu" 
+            className="user-profile-avatar"
+          />
+        </button>
+      </header>
+    );
+  };
 
   const renderDashboardView = () => (
     <div className="verify-container">
@@ -115,7 +185,7 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
           <span>Manage My Spaces</span>
         </button>
 
-        <button type="button" className="btn btn-outline host-action-btn-secondary">
+        <button type="button" className="btn btn-outline host-action-btn-secondary" onClick={() => setView('reservations')}>
           <Calendar size={18} className="btn-icon-left" />
           <span>Active Reservations</span>
         </button>
@@ -274,99 +344,357 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
     </div>
   );
 
+  const renderReservationsView = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      
+      {/* Active Header Pill Area */}
+      <div style={{ padding: '20px 16px 12px 16px', textAlign: 'left', flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Active Now</h1>
+          <span style={{ 
+            fontSize: '11px', 
+            fontWeight: '800', 
+            backgroundColor: 'rgba(0, 108, 53, 0.1)', 
+            color: '#006C35', 
+            padding: '6px 12px', 
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            <span style={{ width: '6px', height: '6px', backgroundColor: '#006C35', borderRadius: '50%', display: 'inline-block' }}></span>
+            3 Active Spots
+          </span>
+        </div>
+      </div>
+
+      {/* Scrollable reservations list */}
+      <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, paddingBottom: '30px' }}>
+        
+        {/* Reservation Card 1: John Smith */}
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150" 
+                alt="John Smith" 
+                style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
+              />
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>John Smith</h3>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: '600' }}>Tesla Model 3 • TN 10 AW 9988</span>
+              </div>
+            </div>
+            <button type="button" style={{ width: '38px', height: '38px', border: '1px solid var(--color-border)', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-brand)' }}>
+              <MessageSquare size={16} />
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '14px 0', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: '550', textAlign: 'left' }}>
+            <MapPin size={15} style={{ color: 'var(--color-green)' }} />
+            <span>12 Khader Nawaz Khan Road, Nungambakkam</span>
+          </div>
+
+          <div style={{ textAlign: 'left', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Time Remaining</span>
+              <span style={{ color: '#006C35' }}>Ends in 45m</span>
+            </div>
+            {/* Progress bar */}
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '75%', height: '100%', backgroundColor: '#006C35', borderRadius: '4px' }}></div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" className="btn btn-outline" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}>
+              Details
+            </button>
+            <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}>
+              Mark as Left
+            </button>
+          </div>
+        </div>
+
+        {/* Reservation Card 2: Sarah Chen */}
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150" 
+                alt="Sarah Chen" 
+                style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
+              />
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Sarah Chen</h3>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: '600' }}>Audi A4 • TN 06 KF 4411</span>
+              </div>
+            </div>
+            <button type="button" style={{ width: '38px', height: '38px', border: '1px solid var(--color-border)', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-brand)' }}>
+              <MessageSquare size={16} />
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '14px 0', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: '550', textAlign: 'left' }}>
+            <MapPin size={15} style={{ color: 'var(--color-green)' }} />
+            <span>12 Khader Nawaz Khan Road, Nungambakkam</span>
+          </div>
+
+          <div style={{ textAlign: 'left', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Time Remaining</span>
+              <span style={{ color: 'var(--color-error)' }}>Overstaying: 12m</span>
+            </div>
+            {/* Progress bar */}
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '100%', backgroundColor: 'var(--color-error)', borderRadius: '4px' }}></div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" className="btn btn-outline" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}>
+              Details
+            </button>
+            <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}>
+              Mark as Left
+            </button>
+          </div>
+        </div>
+
+        {/* Reservation Card 3: Marcus Miller */}
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              <img 
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150" 
+                alt="Marcus Miller" 
+                style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
+              />
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Marcus Miller</h3>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: '600' }}>BMW iX • TN 09 BZ 7722</span>
+              </div>
+            </div>
+            <button type="button" style={{ width: '38px', height: '38px', border: '1px solid var(--color-border)', borderRadius: '50%', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--color-brand)' }}>
+              <MessageSquare size={16} />
+            </button>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '14px 0', color: 'var(--color-text-muted)', fontSize: '13px', fontWeight: '550', textAlign: 'left' }}>
+            <MapPin size={15} style={{ color: 'var(--color-green)' }} />
+            <span>T. Nagar Multi-Level Parking, Chennai</span>
+          </div>
+
+          <div style={{ textAlign: 'left', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '6px' }}>
+              <span style={{ color: 'var(--color-text-muted)' }}>Time Remaining</span>
+              <span style={{ color: 'var(--color-brand)' }}>Ends in 2h 15m</span>
+            </div>
+            {/* Progress bar */}
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '35%', height: '100%', backgroundColor: 'var(--color-brand)', borderRadius: '4px' }}></div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button type="button" className="btn btn-outline" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}>
+              Details
+            </button>
+            <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}>
+              Mark as Left
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom stats row */}
+        <div style={{ display: 'flex', gap: '12px', flexShrink: 0, marginTop: '8.5px' }}>
+          {/* Card 1: Today's Revenue */}
+          <div className="summary-status-card" style={{ flex: 1, backgroundColor: 'var(--color-brand)', color: '#ffffff', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '11px', opacity: 0.7, fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <TrendingUp size={12} /> Today's Revenue
+            </span>
+            <span style={{ fontSize: '24px', fontWeight: '800', lineHeight: 1.1 }}>₹8,450.00</span>
+          </div>
+          {/* Card 2: Upcoming bookings */}
+          <div className="summary-status-card" style={{ flex: 1, backgroundColor: '#cbd5e1', color: 'var(--color-brand)', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '11px', opacity: 0.8, fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Users size={12} /> Upcoming
+            </span>
+            <span style={{ fontSize: '24px', fontWeight: '800', lineHeight: 1.1 }}>4 Bookings</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+
+  const renderEarningsView = () => (
+    <div className="verify-container" style={{ textAlign: 'left' }}>
+      <h1 className="verify-title" style={{ margin: '0 0 16px 0' }}>Earnings</h1>
+      
+      {/* Total Earnings Card */}
+      <div className="host-analytics-card" style={{ marginBottom: '24px' }}>
+        <div className="analytics-header">
+          <span className="analytics-label">TOTAL PAID OUT</span>
+          <IndianRupee size={20} className="analytics-icon" />
+        </div>
+        <p className="analytics-value">₹29,600.00</p>
+        <div className="analytics-details">
+          <div className="detail-stat">
+            <span className="stat-label">Last Payout</span>
+            <span className="stat-val">₹22,400.00</span>
+          </div>
+          <div className="detail-stat border-stat-left">
+            <span className="stat-label">Next Payout</span>
+            <span className="stat-val">₹7,200.00</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--color-brand)', marginBottom: '12px' }}>Payout Transactions</h3>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '16px' }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '700', color: 'var(--color-brand)' }}>Payout to HDFC Bank</p>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--color-text-muted)' }}>Jul 12, 2026</p>
+          </div>
+          <span style={{ fontSize: '14px', fontWeight: '800', color: '#006C35' }}>+₹22,400.00</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', backgroundColor: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '16px' }}>
+          <div>
+            <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '700', color: 'var(--color-brand)' }}>Payout to Visa (4242)</p>
+            <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--color-text-muted)' }}>Jun 28, 2026</p>
+          </div>
+          <span style={{ fontSize: '14px', fontWeight: '800', color: '#006C35' }}>+₹7,200.00</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderActiveView = () => {
+    switch (view) {
+      case 'dashboard':
+        return renderDashboardView();
+      case 'manage':
+        return renderManageView();
+      case 'reservations':
+        return renderReservationsView();
+      case 'earnings':
+        return renderEarningsView();
+      default:
+        return renderReservationsView();
+    }
+  };
+
   return (
     <div className="login-screen-animation host-portal-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       
-      {/* Navigation Header */}
-      <header className="home-top-bar" style={{ flexShrink: 0 }}>
-        <div className="home-logo-wrap" style={{ display: 'flex', alignItems: 'center' }}>
-          {view === 'manage' ? (
-            <button 
-              type="button" 
-              className="btn-back-link" 
-              onClick={() => setView('dashboard')} 
-              aria-label="Go back to host dashboard"
-              style={{ background: 'none', border: 'none', padding: '0 8px 0 0', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
-            >
-              <ArrowLeft size={22} className="back-arrow-icon" />
-            </button>
-          ) : (
-            <button 
-              type="button" 
-              className="btn-back-link" 
-              onClick={onBack} 
-              aria-label="Go back to role selection"
-              style={{ background: 'none', border: 'none', padding: '0 8px 0 0', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
-            >
-              <ArrowLeft size={22} className="back-arrow-icon" />
-            </button>
-          )}
-
-          <button type="button" className="btn-menu-hamburger" style={{ background: 'none', border: 'none', padding: '0 8px 0 0', display: 'flex', alignItems: 'center', color: 'var(--color-brand)' }}>
-            <Menu size={22} />
-          </button>
-          <span className="home-brand-title">PARKEE</span>
-        </div>
-        
-        <button type="button" className="profile-avatar-btn" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => onNavigateRenter && onNavigateRenter('profile')}>
-          <img 
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" 
-            alt="User profile menu" 
-            className="user-profile-avatar"
-          />
-        </button>
-      </header>
+      {/* Dynamic Header */}
+      {renderHeader()}
 
       {/* Main Body view content */}
-      <div style={{ flex: 1, overflowHidden: 'hidden', minHeight: 0 }}>
-        {view === 'dashboard' ? renderDashboardView() : renderManageView()}
+      <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        {renderActiveView()}
       </div>
 
       {/* Bottom Sticky Tab Navigation */}
-      <footer className="home-bottom-navbar" style={{ flexShrink: 0 }}>
+      <footer className="home-bottom-navbar" style={{ flexShrink: 0, height: '62px', display: 'flex', alignItems: 'center', justifyContent: 'space-around', backgroundColor: '#ffffff', borderTop: '1px solid var(--color-border)', padding: '0 8px' }}>
         <button 
           type="button" 
-          className="nav-tab-item"
-          onClick={() => onNavigateRenter && onNavigateRenter('home')}
+          onClick={() => setView('dashboard')}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            color: view === 'dashboard' ? '#0b1f3c' : 'var(--color-text-muted)',
+            fontWeight: '750',
+            fontSize: '12px',
+            backgroundColor: view === 'dashboard' ? '#86efac' : 'transparent',
+            padding: view === 'dashboard' ? '8px 16px' : '8px',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
         >
-          <Search size={20} className="tab-icon" />
-          <span>Search</span>
+          <LayoutDashboard size={20} />
+          {view === 'dashboard' && <span>Dashboard</span>}
         </button>
 
         <button 
           type="button" 
-          className="nav-tab-item"
-          onClick={() => onNavigateRenter && onNavigateRenter('bookings')}
+          onClick={() => setView('manage')}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            color: view === 'manage' ? '#0b1f3c' : 'var(--color-text-muted)',
+            fontWeight: '750',
+            fontSize: '12px',
+            backgroundColor: view === 'manage' ? '#86efac' : 'transparent',
+            padding: view === 'manage' ? '8px 16px' : '8px',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
         >
-          <ClipboardList size={20} className="tab-icon" />
-          <span>Bookings</span>
+          <MapPin size={20} />
+          {view === 'manage' && <span>Spots</span>}
         </button>
 
         <button 
           type="button" 
-          className="nav-tab-item active-tab"
+          onClick={() => setView('reservations')}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            color: view === 'reservations' ? '#0b1f3c' : 'var(--color-text-muted)',
+            fontWeight: '750',
+            fontSize: '12px',
+            backgroundColor: view === 'reservations' ? '#86efac' : 'transparent',
+            padding: view === 'reservations' ? '8px 16px' : '8px',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
         >
-          <Home size={20} className="tab-icon" />
-          <span>Host</span>
-          <div className="active-tab-indicator"></div>
+          <Calendar size={20} />
+          {view === 'reservations' && <span>Reservations</span>}
         </button>
 
         <button 
           type="button" 
-          className="nav-tab-item"
-          onClick={() => onNavigateRenter && onNavigateRenter('wallet')}
+          onClick={() => setView('earnings')}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            color: view === 'earnings' ? '#0b1f3c' : 'var(--color-text-muted)',
+            fontWeight: '750',
+            fontSize: '12px',
+            backgroundColor: view === 'earnings' ? '#86efac' : 'transparent',
+            padding: view === 'earnings' ? '8px 16px' : '8px',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
         >
-          <Wallet size={20} className="tab-icon" />
-          <span>Wallet</span>
-        </button>
-
-        <button 
-          type="button" 
-          className="nav-tab-item"
-          onClick={() => onNavigateRenter && onNavigateRenter('profile')}
-        >
-          <User size={20} className="tab-icon" />
-          <span>Profile</span>
+          <Wallet size={20} />
+          {view === 'earnings' && <span>Earnings</span>}
         </button>
       </footer>
 
