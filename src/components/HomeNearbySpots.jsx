@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 import Logo from './Logo';
 import UserProfile from './UserProfile';
-import chennaiMap from '../assets/chennai_styled_map.png';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost, onSelectSpot, activeBooking, initialTab = 'home', spots }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +37,11 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
   const [mapZoom, setMapZoom] = useState('out'); // 'out' | 'in'
   const [sheetHeight, setSheetHeight] = useState('half'); // 'collapsed' | 'half' | 'full'
   const [selectedMapSpot, setSelectedMapSpot] = useState(1);
+
+  // Leaflet references
+  const mapRef = useRef(null);
+  const leafletMap = useRef(null);
+  const markersGroupRef = useRef(null);
 
   // Core Central Chennai Spots definition matching User localization requirements
   const chennaiSpots = [
@@ -53,7 +59,9 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       instant: true,
       image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400',
       left: '60%', 
-      top: '40%'
+      top: '40%',
+      lat: 13.0607,
+      lng: 80.2512
     },
     {
       id: 2,
@@ -69,7 +77,9 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       instant: true,
       image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400',
       left: '25%', 
-      top: '35%'
+      top: '35%',
+      lat: 13.0405,
+      lng: 80.2337
     },
     {
       id: 3,
@@ -85,16 +95,20 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       instant: false,
       image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=400',
       left: '70%', 
-      top: '68%'
+      top: '68%',
+      lat: 13.0063,
+      lng: 80.2574
     }
   ];
 
   // Map user host spots to Chennai coordinates to show live synchronization support
   const customSpots = (spots || []).map((spot, i) => {
-    if (spot.left) return spot;
+    if (spot.lat && spot.lng) return spot;
     return {
       ...spot,
       instant: true,
+      lat: 13.0405 + (i * 0.01) - 0.005,
+      lng: 80.2450 + (i * 0.01) - 0.005,
       left: `${42 + (i * 8)}%`,
       top: `${52 - (i * 6)}%`
     };
@@ -153,16 +167,149 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     return matchesSearch && matchesCctv && matchesSecurity;
   });
 
-  const renderHomeContent = () => {
-    const filteredChennaiSpots = allChennaiSpots.filter(spot => {
-      const matchesSearch = spot.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCctv = !cctvFilter || spot.cctv;
-      const matchesSecurity = !securityFilter || spot.security;
-      return matchesSearch && matchesCctv && matchesSecurity;
+  const filteredChennaiSpots = allChennaiSpots.filter(spot => {
+    const matchesSearch = spot.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCctv = !cctvFilter || spot.cctv;
+    const matchesSecurity = !securityFilter || spot.security;
+    return matchesSearch && matchesCctv && matchesSecurity;
+  });
+
+  const activeSpot = filteredChennaiSpots.find(s => s.id === selectedMapSpot) || filteredChennaiSpots[0] || allChennaiSpots[0];
+
+  // Initialize and destroy Leaflet Map
+  useEffect(() => {
+    if (activeTab !== 'home' || !mapRef.current) return;
+
+    const initialZoom = mapZoom === 'out' ? 12 : 15;
+    const centerLatLng = activeSpot && activeSpot.lat && activeSpot.lng 
+      ? [activeSpot.lat, activeSpot.lng] 
+      : [13.0405, 80.2450];
+
+    const mapInstance = L.map(mapRef.current, {
+      zoomControl: false,
+      attributionControl: false
+    }).setView(centerLatLng, initialZoom);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(mapInstance);
+
+    const markersGroup = L.layerGroup().addTo(mapInstance);
+
+    leafletMap.current = mapInstance;
+    markersGroupRef.current = markersGroup;
+
+    mapInstance.on('zoomend', () => {
+      const zoom = mapInstance.getZoom();
+      setMapZoom(zoom < 14 ? 'out' : 'in');
     });
 
-    const activeSpot = filteredChennaiSpots.find(s => s.id === selectedMapSpot) || filteredChennaiSpots[0] || allChennaiSpots[0];
+    return () => {
+      mapInstance.remove();
+      leafletMap.current = null;
+      markersGroupRef.current = null;
+    };
+  }, [activeTab]);
 
+  // Synchronize Leaflet view when selectedMapSpot or activeSpot changes
+  useEffect(() => {
+    if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
+      const targetZoom = mapZoom === 'out' ? 12 : 15;
+      leafletMap.current.setView([activeSpot.lat, activeSpot.lng], targetZoom, {
+        animate: true,
+        duration: 0.5
+      });
+    }
+  }, [selectedMapSpot]);
+
+  // Dynamically update markers
+  useEffect(() => {
+    if (!leafletMap.current || !markersGroupRef.current) return;
+
+    const mapInstance = leafletMap.current;
+    const markersGroup = markersGroupRef.current;
+
+    markersGroup.clearLayers();
+
+    if (mapZoom === 'out') {
+      // Cluster 1 (Khader Nawaz Khan Road + T. Nagar)
+      const cluster1Spots = filteredChennaiSpots.filter(s => s.id === 1 || s.id === 2);
+      if (cluster1Spots.length > 0) {
+        const cluster1Icon = L.divIcon({
+          className: 'custom-leaflet-icon',
+          html: `<button type="button" class="map-cluster-badge cluster-1"><span>${cluster1Spots.length * 12}</span></button>`,
+          iconSize: [40, 40],
+          iconAnchor: [0, 0]
+        });
+        const m1 = L.marker([13.0506, 80.2425], { icon: cluster1Icon });
+        m1.on('click', () => {
+          setMapZoom('in');
+          setSelectedMapSpot(1);
+          mapInstance.setView([13.0607, 80.2512], 15, { animate: true });
+        });
+        m1.addTo(markersGroup);
+      }
+
+      // Cluster 2 (Adyar)
+      const cluster2Spots = filteredChennaiSpots.filter(s => s.id === 3);
+      if (cluster2Spots.length > 0) {
+        const cluster2Icon = L.divIcon({
+          className: 'custom-leaflet-icon',
+          html: `<button type="button" class="map-cluster-badge cluster-2"><span>5</span></button>`,
+          iconSize: [40, 40],
+          iconAnchor: [0, 0]
+        });
+        const m2 = L.marker([13.0063, 80.2574], { icon: cluster2Icon });
+        m2.on('click', () => {
+          setMapZoom('in');
+          setSelectedMapSpot(3);
+          mapInstance.setView([13.0063, 80.2574], 15, { animate: true });
+        });
+        m2.addTo(markersGroup);
+      }
+
+      // Other host listed spots
+      const otherSpots = filteredChennaiSpots.filter(s => s.id > 3);
+      otherSpots.forEach(spot => {
+        const pinIcon = L.divIcon({
+          className: 'custom-leaflet-icon',
+          html: `<button type="button" class="map-cluster-badge"><span>1</span></button>`,
+          iconSize: [40, 40],
+          iconAnchor: [0, 0]
+        });
+        const m = L.marker([spot.lat, spot.lng], { icon: pinIcon });
+        m.on('click', () => {
+          setMapZoom('in');
+          setSelectedMapSpot(spot.id);
+          mapInstance.setView([spot.lat, spot.lng], 15, { animate: true });
+        });
+        m.addTo(markersGroup);
+      });
+
+    } else {
+      // Zoomed In: Individual price pins
+      filteredChennaiSpots.forEach(spot => {
+        const isSelected = spot.id === selectedMapSpot;
+        const pinIcon = L.divIcon({
+          className: 'custom-leaflet-icon',
+          html: `<button type="button" class="map-price-pin-marker ${isSelected ? 'selected' : ''}">
+                   <span class="price-pin-txt">₹${spot.price}</span>
+                   <div class="price-pin-pointer"></div>
+                 </button>`,
+          iconSize: [80, 40],
+          iconAnchor: [0, 0]
+        });
+
+        const m = L.marker([spot.lat, spot.lng], { icon: pinIcon });
+        m.on('click', () => {
+          setSelectedMapSpot(spot.id);
+        });
+        m.addTo(markersGroup);
+      });
+    }
+  }, [filteredChennaiSpots, selectedMapSpot, mapZoom, activeTab]);
+
+  const renderHomeContent = () => {
     const toggleSheetHeight = () => {
       if (sheetHeight === 'collapsed') setSheetHeight('half');
       else if (sheetHeight === 'half') setSheetHeight('full');
@@ -196,52 +343,8 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
         </div>
 
         {/* Map Viewport */}
-        <div className={`map-viewport zoom-${mapZoom}`}>
-          <div className="map-canvas-container">
-            <img src={chennaiMap} alt="Central Chennai Map Background" className="london-map-image" />
-            
-            {/* --- Zoomed Out Clusters --- */}
-            {mapZoom === 'out' && (
-              <>
-                <button 
-                  type="button"
-                  className="map-cluster-badge cluster-1"
-                  onClick={() => { setMapZoom('in'); setSelectedMapSpot(1); }}
-                >
-                  <span>12</span>
-                </button>
-                
-                <button 
-                  type="button"
-                  className="map-cluster-badge cluster-2"
-                  onClick={() => { setMapZoom('in'); setSelectedMapSpot(3); }}
-                >
-                  <span>5</span>
-                </button>
-              </>
-            )}
-
-            {/* --- Zoomed In Individual Pins --- */}
-            {mapZoom === 'in' && (
-              <>
-                {filteredChennaiSpots.map(spot => {
-                  const isSelected = spot.id === selectedMapSpot;
-                  return (
-                    <button
-                      key={spot.id}
-                      type="button"
-                      className={`map-price-pin-marker ${isSelected ? 'selected' : ''}`}
-                      style={{ left: spot.left, top: spot.top }}
-                      onClick={() => setSelectedMapSpot(spot.id)}
-                    >
-                      <span className="price-pin-txt">₹{spot.price}</span>
-                      <div className="price-pin-pointer"></div>
-                    </button>
-                  );
-                })}
-              </>
-            )}
-          </div>
+        <div className="map-viewport">
+          <div ref={mapRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
         </div>
 
         {/* Floating Navigation Controls */}
@@ -249,7 +352,16 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
           <button 
             type="button" 
             className="btn-floating-nav-control" 
-            onClick={() => setMapZoom(mapZoom === 'out' ? 'in' : 'out')}
+            onClick={() => {
+              if (leafletMap.current) {
+                const currentZoom = leafletMap.current.getZoom();
+                if (currentZoom >= 14) {
+                  leafletMap.current.setZoom(12);
+                } else {
+                  leafletMap.current.setZoom(15);
+                }
+              }
+            }}
             title="Toggle Zoom"
           >
             {mapZoom === 'out' ? <Plus size={20} /> : <Minus size={20} />}
@@ -259,8 +371,11 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
             type="button" 
             className="btn-floating-nav-control" 
             onClick={() => {
-              setMapZoom('in');
-              setSelectedMapSpot(1);
+              if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
+                leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
+                setSelectedMapSpot(activeSpot.id);
+                setMapZoom('in');
+              }
             }}
             title="Find My Location"
           >

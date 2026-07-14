@@ -3917,6 +3917,11 @@ h1 {
   flex-direction: column !important;
 }
 
+.custom-leaflet-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
 
 
 
