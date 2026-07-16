@@ -22,7 +22,7 @@ import {
 import Logo from './Logo';
 
 export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRenter, onSpotFreed, spots }) {
-  const [view, setView] = useState('reservations');
+  const [view, setView] = useState('dashboard');
 
   const [activeReservations, setActiveReservations] = useState([
     {
@@ -516,7 +516,7 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
       case 'earnings':
         return renderEarningsView();
       default:
-        return renderReservationsView();
+        return renderDashboardView();
     }
   };
 
