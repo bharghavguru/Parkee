@@ -17,13 +17,60 @@ import {
   MessageSquare,
   Bell,
   TrendingUp,
-  Users
+  Users,
+  X,
+  Check,
+  Edit3,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import Logo from './Logo';
 
-export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRenter, onSpotFreed, spots }) {
+export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRenter, onSpotFreed, spots, onUpdateSpot }) {
   const [view, setView] = useState('dashboard');
   const [selectedResForDetails, setSelectedResForDetails] = useState(null);
+
+  // Edit / View state variables
+  const [editingSpot, setEditingSpot] = useState(null);
+  const [viewingSpot, setViewingSpot] = useState(null);
+  
+  // Local edit form states
+  const [editTitle, setEditTitle] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editCctv, setEditCctv] = useState(false);
+  const [editStatus, setEditStatus] = useState('ACTIVE');
+  const [editType, setEditType] = useState('Driveway');
+
+  const startEditing = (spot) => {
+    setEditTitle(spot.title);
+    setEditLocation(spot.location || '');
+    setEditPrice(spot.price);
+    setEditCctv(spot.cctv || false);
+    setEditStatus(spot.status || 'ACTIVE');
+    setEditType(spot.type || 'Driveway');
+    setEditingSpot(spot);
+  };
+
+  const handleSaveSpot = () => {
+    if (!editTitle.trim()) {
+      alert('Please enter a spot name.');
+      return;
+    }
+    const updatedSpot = {
+      ...editingSpot,
+      title: editTitle,
+      location: editLocation,
+      price: parseFloat(editPrice || '0').toFixed(2),
+      type: editType,
+      cctv: editCctv,
+      status: editStatus
+    };
+    if (onUpdateSpot) {
+      onUpdateSpot(updatedSpot);
+    }
+    setEditingSpot(null);
+  };
 
   const [activeReservations, setActiveReservations] = useState([
     {
@@ -80,54 +127,20 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
     }
   };
 
-  const defaultHostSpots = [
-    {
-      id: 'hs1',
-      title: '12 Khader Nawaz Khan Road',
-      location: 'Nungambakkam, Chennai',
-      status: 'ACTIVE',
-      price: '80.00',
-      bookingsMtd: '28 sessions',
-      totalEarned: '22,400.00',
-      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400'
-    },
-    {
-      id: 'hs2',
-      title: 'T. Nagar Multi-Level Parking',
-      location: 'T. Nagar, Chennai',
-      status: 'PENDING REVIEW',
-      price: '120.00',
-      bookingsMtd: '0 sessions',
-      totalEarned: '0.00',
-      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400'
-    },
-    {
-      id: 'hs3',
-      title: 'Adyar Private Car Park',
-      location: 'Adyar, Chennai',
-      status: 'HIDDEN',
-      price: '60.00',
-      bookingsMtd: '12 sessions',
-      totalEarned: '7,200.00',
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=400'
-    }
-  ];
-
-  const userAddedSpots = (spots || []).filter(s => s.id > 3).map(s => ({
-    id: `user-${s.id}`,
-    title: s.title,
-    location: s.title.includes(',') ? s.title : `${s.title}, Chennai`,
-    status: 'ACTIVE',
-    price: s.price,
-    bookingsMtd: '0 sessions',
-    totalEarned: '0.00',
-    image: s.image
+  const allHostSpots = (spots || []).map(spot => ({
+    ...spot,
+    location: spot.location || (spot.title.includes(',') ? spot.title : `${spot.title}, Chennai`),
+    status: spot.status || 'ACTIVE',
+    bookingsMtd: spot.bookingsMtd || '0 sessions',
+    totalEarned: spot.totalEarned || '0.00'
   }));
 
-  const allHostSpots = [...defaultHostSpots, ...userAddedSpots];
   const activeSpotsCount = allHostSpots.filter(s => s.status === 'ACTIVE').length;
-  const staticEarnings = 29600.00;
-  const totalEarningsInRupees = staticEarnings;
+
+  const totalEarningsInRupees = allHostSpots.reduce((sum, s) => {
+    const val = parseFloat(s.totalEarned ? String(s.totalEarned).replace(/[^0-9.]/g, '') : '0');
+    return sum + val;
+  }, 0);
 
   const renderHeader = () => {
     if (view === 'reservations') {
@@ -324,11 +337,21 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="button" className="btn btn-outline" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)', padding: 0 }}>
+              <button 
+                type="button" 
+                onClick={() => startEditing(spot)}
+                className="btn btn-outline" 
+                style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)', padding: 0 }}
+              >
                 EDIT
               </button>
               {spot.status === 'ACTIVE' && (
-                <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: 'var(--color-brand)', color: '#ffffff', padding: 0 }}>
+                <button 
+                  type="button" 
+                  onClick={() => setViewingSpot(spot)}
+                  className="btn" 
+                  style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: 'var(--color-brand)', color: '#ffffff', padding: 0 }}
+                >
                   VIEW DETAILS
                 </button>
               )}
@@ -338,7 +361,12 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
                 </button>
               )}
               {spot.status === 'HIDDEN' && (
-                <button type="button" className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff', padding: 0 }}>
+                <button 
+                  type="button" 
+                  onClick={() => onUpdateSpot && onUpdateSpot({ ...spot, status: 'ACTIVE' })}
+                  className="btn" 
+                  style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff', padding: 0 }}
+                >
                   RE-ACTIVATE
                 </button>
               )}
@@ -524,6 +552,487 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
     }
   };
 
+  const renderModals = () => {
+    try {
+      return (
+        <>
+          {/* Reservation Details Modal */}
+          {selectedResForDetails && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.4)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 20000,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+              animation: 'fadeIn 0.3s ease-out'
+            }}>
+              <div 
+                onClick={() => setSelectedResForDetails(null)} 
+                style={{ flex: 1, cursor: 'pointer' }}
+              />
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderTopLeftRadius: '32px',
+                borderTopRightRadius: '32px',
+                padding: '24px 20px 30px 20px',
+                boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                maxHeight: '85%',
+                overflowY: 'auto',
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '4px',
+                  backgroundColor: 'var(--color-border)',
+                  borderRadius: '2px',
+                  margin: '0 auto 20px auto'
+                }} />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Reservation Details</h2>
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedResForDetails(null)}
+                    style={{
+                      background: '#f1f5f9',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '32px',
+                      height: '32px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      color: 'var(--color-text-muted)'
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', backgroundColor: 'var(--color-bg-light)', padding: '14px', borderRadius: '16px', marginBottom: '20px' }}>
+                  <img 
+                    src={selectedResForDetails.image} 
+                    alt={selectedResForDetails.name} 
+                    style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ffffff', boxShadow: 'var(--shadow-sm)' }} 
+                  />
+                  <div style={{ textAlign: 'left' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>{selectedResForDetails.name}</h3>
+                    <span style={{
+                      display: 'inline-block',
+                      fontSize: '9px',
+                      fontWeight: '800',
+                      padding: '3px 8px',
+                      borderRadius: '20px',
+                      letterSpacing: '0.3px',
+                      marginTop: '4px',
+                      backgroundColor: selectedResForDetails.status === 'active' ? 'rgba(0, 108, 53, 0.1)' : 'rgba(229, 62, 62, 0.1)',
+                      color: selectedResForDetails.status === 'active' ? '#006C35' : '#e53e3e'
+                    }}>
+                      {selectedResForDetails.status === 'active' ? 'ACTIVE' : 'OVERSTAYING'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'left' }}>
+                  <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      🚗 Vehicle Details
+                    </span>
+                    <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-brand)' }}>
+                      {selectedResForDetails.vehicleDetails}
+                    </p>
+                  </div>
+
+                  <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      🕒 Reserved Time
+                    </span>
+                    <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-brand)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>{selectedResForDetails.timeRange}</span>
+                      <span style={{ fontSize: '12px', color: selectedResForDetails.progressColor, fontWeight: '700' }}>
+                        {selectedResForDetails.timeRemaining}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      💳 Price & Earnings Details
+                    </span>
+                    <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: '#006C35' }}>
+                      {selectedResForDetails.priceDetails}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      💬 Customer Queries
+                    </span>
+                    <p style={{ 
+                      margin: '6px 0 0 0', 
+                      fontSize: '13.5px', 
+                      fontWeight: '600', 
+                      color: 'var(--color-brand)', 
+                      backgroundColor: 'rgba(11, 46, 92, 0.04)', 
+                      padding: '12px', 
+                      borderRadius: '12px',
+                      lineHeight: '1.4',
+                      fontStyle: 'italic'
+                    }}>
+                      "{selectedResForDetails.customerQuery}"
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setSelectedResForDetails(null)}
+                    className="btn btn-outline" 
+                    style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px' }}
+                  >
+                    Close
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      handleMarkAsLeft(selectedResForDetails);
+                      setSelectedResForDetails(null);
+                    }} 
+                    className="btn" 
+                    style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}
+                  >
+                    Mark as Left
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* Spot Details Modal */}
+          {viewingSpot && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.4)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 20000,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+              animation: 'fadeIn 0.3s ease-out'
+            }}>
+              <div 
+                onClick={() => setViewingSpot(null)} 
+                style={{ flex: 1, cursor: 'pointer' }}
+              />
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderTopLeftRadius: '32px',
+                borderTopRightRadius: '32px',
+                padding: '24px 20px 30px 20px',
+                boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                maxHeight: '90%',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}>
+                <div style={{ width: '40px', height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', margin: '0 auto 16px auto' }} />
+                
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Spot Details</h2>
+                  <button 
+                    type="button" 
+                    onClick={() => setViewingSpot(null)}
+                    style={{ border: 'none', background: 'transparent', padding: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={24} style={{ color: 'var(--color-brand)' }} />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+                  {/* Cover Photo */}
+                  <div style={{ position: 'relative', width: '100%', height: '160px', borderRadius: '20px', overflow: 'hidden' }}>
+                    <img 
+                      src={viewingSpot.image} 
+                      alt={viewingSpot.title} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      fontSize: '11px',
+                      fontWeight: '800',
+                      padding: '6px 14px',
+                      borderRadius: '30px',
+                      backgroundColor: viewingSpot.status === 'ACTIVE' ? 'var(--color-green)' : viewingSpot.status === 'PENDING REVIEW' ? '#d97706' : '#64748b',
+                      color: '#ffffff',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                    }}>
+                      {viewingSpot.status}
+                    </span>
+                  </div>
+
+                  {/* Title & Address */}
+                  <div style={{ textAlign: 'left' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>{viewingSpot.title}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                      <MapPin size={16} style={{ color: 'var(--color-green)' }} />
+                      <span>{viewingSpot.location}</span>
+                    </div>
+                  </div>
+
+                  {/* Stats Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div style={{ background: 'rgba(11, 46, 92, 0.03)', padding: '16px', borderRadius: '16px', textAlign: 'left' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bookings (MTD)</span>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: '800', color: 'var(--color-brand)' }}>{viewingSpot.bookingsMtd}</p>
+                    </div>
+                    <div style={{ background: 'rgba(11, 46, 92, 0.03)', padding: '16px', borderRadius: '16px', textAlign: 'left' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Earned</span>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: '800', color: '#006C35' }}>₹{viewingSpot.totalEarned}</p>
+                    </div>
+                  </div>
+
+                  {/* Details & Facilities */}
+                  <div style={{ textAlign: 'left', background: 'rgba(11, 46, 92, 0.03)', padding: '16px', borderRadius: '16px' }}>
+                    <h4 style={{ fontSize: '13px', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--color-text-muted)', margin: '0 0 12px 0' }}>Spot Configuration</h4>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Price rate:</span>
+                        <span style={{ fontWeight: '700', color: 'var(--color-brand)' }}>₹{viewingSpot.price} / hour</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Space Type:</span>
+                        <span style={{ fontWeight: '700', color: 'var(--color-brand)' }}>{viewingSpot.type || 'Driveway'}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>CCTV Security:</span>
+                        <span style={{ fontWeight: '700', color: viewingSpot.cctv ? '#006C35' : '#ef4444' }}>
+                          {viewingSpot.cctv ? 'Installed & Active' : 'Not Installed'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      const newStatus = viewingSpot.status === 'ACTIVE' ? 'HIDDEN' : 'ACTIVE';
+                      onUpdateSpot({
+                        ...viewingSpot,
+                        status: newStatus
+                      });
+                      setViewingSpot(prev => ({ ...prev, status: newStatus }));
+                    }}
+                    className="btn btn-outline" 
+                    style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}
+                  >
+                    {viewingSpot.status === 'ACTIVE' ? 'Hide Spot' : 'Show Spot'}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      startEditing(viewingSpot);
+                      setViewingSpot(null);
+                    }} 
+                    className="btn" 
+                    style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', background: 'var(--color-brand)', color: '#ffffff' }}
+                  >
+                    Edit Space
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {/* Edit Spot Modal */}
+          {editingSpot && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.4)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 20000,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+              animation: 'fadeIn 0.3s ease-out'
+            }}>
+              <div 
+                onClick={() => setEditingSpot(null)} 
+                style={{ flex: 1, cursor: 'pointer' }}
+              />
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderTopLeftRadius: '32px',
+                borderTopRightRadius: '32px',
+                padding: '24px 20px 30px 20px',
+                boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+                maxHeight: '90%',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}>
+                <div style={{ width: '40px', height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', margin: '0 auto 16px auto' }} />
+                
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Edit Parking Spot</h2>
+                  <button 
+                    type="button" 
+                    onClick={() => setEditingSpot(null)}
+                    style={{ border: 'none', background: 'transparent', padding: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={24} style={{ color: 'var(--color-brand)' }} />
+                  </button>
+                </div>
+
+                {/* Content Form */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', textAlign: 'left' }}>
+                  
+                  {/* Title / Name */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: '750', color: 'var(--color-brand)' }}>Spot Name / Title</label>
+                    <input 
+                      type="text" 
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '0 12px', fontSize: '14.5px', color: 'var(--color-brand)', outline: 'none' }}
+                      placeholder="e.g. 12 Khader Nawaz Khan Road"
+                    />
+                  </div>
+
+                  {/* Location */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: '750', color: 'var(--color-brand)' }}>Location / Address</label>
+                    <input 
+                      type="text" 
+                      value={editLocation}
+                      onChange={(e) => setEditLocation(e.target.value)}
+                      style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '0 12px', fontSize: '14.5px', color: 'var(--color-brand)', outline: 'none' }}
+                      placeholder="e.g. Nungambakkam, Chennai"
+                    />
+                  </div>
+
+                  {/* Price & Type Row */}
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '13px', fontWeight: '750', color: 'var(--color-brand)' }}>Price (₹/hr)</label>
+                      <input 
+                        type="number" 
+                        value={editPrice}
+                        onChange={(e) => setEditPrice(e.target.value)}
+                        style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '0 12px', fontSize: '14.5px', color: 'var(--color-brand)', outline: 'none' }}
+                        placeholder="80"
+                      />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '13px', fontWeight: '750', color: 'var(--color-brand)' }}>Space Type</label>
+                      <select 
+                        value={editType}
+                        onChange={(e) => setEditType(e.target.value)}
+                        style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '0 12px', fontSize: '14.5px', color: 'var(--color-brand)', outline: 'none', backgroundColor: '#ffffff' }}
+                      >
+                        <option value="Driveway">Driveway</option>
+                        <option value="Garage">Garage</option>
+                        <option value="Underground">Underground</option>
+                        <option value="Private Lot">Private Lot</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* CCTV & Status row */}
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '13px', fontWeight: '750', color: 'var(--color-brand)' }}>Status</label>
+                      <select 
+                        value={editStatus}
+                        onChange={(e) => setEditStatus(e.target.value)}
+                        style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '0 12px', fontSize: '14.5px', color: 'var(--color-brand)', outline: 'none', backgroundColor: '#ffffff' }}
+                      >
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="PENDING REVIEW">PENDING REVIEW</option>
+                        <option value="HIDDEN">HIDDEN</option>
+                      </select>
+                    </div>
+                    
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '20px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={editCctv}
+                          onChange={(e) => setEditCctv(e.target.checked)}
+                          style={{ width: '18px', height: '18px', borderRadius: '6px', accentColor: 'var(--color-green)' }}
+                        />
+                        <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--color-brand)' }}>CCTV Security</span>
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setEditingSpot(null)}
+                    className="btn btn-outline" 
+                    style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={handleSaveSpot} 
+                    className="btn" 
+                    style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', background: 'var(--color-brand)', color: '#ffffff' }}
+                  >
+                    Save Changes
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          )}
+        </>
+      );
+    } catch (e) {
+      console.error("CRASH IN RENTER DASHBOARD MODALS:", e);
+      return (
+        <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'red', color: 'white', padding: 10, zIndex: 999999 }}>
+          Modal Error: {e.message}
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="login-screen-animation host-portal-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       
@@ -642,167 +1151,7 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
         }
       `}</style>
 
-      {selectedResForDetails && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.4)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 20000,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          animation: 'fadeIn 0.3s ease-out'
-        }}>
-          <div 
-            onClick={() => setSelectedResForDetails(null)} 
-            style={{ flex: 1, cursor: 'pointer' }}
-          />
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderTopLeftRadius: '32px',
-            borderTopRightRadius: '32px',
-            padding: '24px 20px 30px 20px',
-            boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
-            maxHeight: '85%',
-            overflowY: 'auto',
-            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '4px',
-              backgroundColor: 'var(--color-border)',
-              borderRadius: '2px',
-              margin: '0 auto 20px auto'
-            }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Reservation Details</h2>
-              <button 
-                type="button" 
-                onClick={() => setSelectedResForDetails(null)}
-                style={{
-                  background: '#f1f5f9',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '18px',
-                  fontWeight: '700',
-                  color: 'var(--color-text-muted)'
-                }}
-              >
-                ×
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', backgroundColor: 'var(--color-bg-light)', padding: '14px', borderRadius: '16px', marginBottom: '20px' }}>
-              <img 
-                src={selectedResForDetails.image} 
-                alt={selectedResForDetails.name} 
-                style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ffffff', boxShadow: 'var(--shadow-sm)' }} 
-              />
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>{selectedResForDetails.name}</h3>
-                <span style={{
-                  display: 'inline-block',
-                  fontSize: '9px',
-                  fontWeight: '800',
-                  padding: '3px 8px',
-                  borderRadius: '20px',
-                  letterSpacing: '0.3px',
-                  marginTop: '4px',
-                  backgroundColor: selectedResForDetails.status === 'active' ? 'rgba(0, 108, 53, 0.1)' : 'rgba(229, 62, 62, 0.1)',
-                  color: selectedResForDetails.status === 'active' ? '#006C35' : '#e53e3e'
-                }}>
-                  {selectedResForDetails.status === 'active' ? 'ACTIVE' : 'OVERSTAYING'}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'left' }}>
-              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  🚗 Vehicle Details
-                </span>
-                <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-brand)' }}>
-                  {selectedResForDetails.vehicleDetails}
-                </p>
-              </div>
-
-              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  🕒 Reserved Time
-                </span>
-                <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-brand)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{selectedResForDetails.timeRange}</span>
-                  <span style={{ fontSize: '12px', color: selectedResForDetails.progressColor, fontWeight: '700' }}>
-                    {selectedResForDetails.timeRemaining}
-                  </span>
-                </p>
-              </div>
-
-              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  💳 Price & Earnings Details
-                </span>
-                <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: '#006C35' }}>
-                  {selectedResForDetails.priceDetails}
-                </p>
-              </div>
-
-              <div>
-                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-                  💬 Customer Queries
-                </span>
-                <p style={{ 
-                  margin: '6px 0 0 0', 
-                  fontSize: '13.5px', 
-                  fontWeight: '600', 
-                  color: 'var(--color-brand)', 
-                  backgroundColor: 'rgba(11, 46, 92, 0.04)', 
-                  padding: '12px', 
-                  borderRadius: '12px',
-                  lineHeight: '1.4',
-                  fontStyle: 'italic'
-                }}>
-                  "{selectedResForDetails.customerQuery}"
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button 
-                type="button" 
-                onClick={() => setSelectedResForDetails(null)}
-                className="btn btn-outline" 
-                style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px' }}
-              >
-                Close
-              </button>
-              <button 
-                type="button" 
-                onClick={() => {
-                  handleMarkAsLeft(selectedResForDetails);
-                  setSelectedResForDetails(null);
-                }} 
-                className="btn" 
-                style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}
-              >
-                Mark as Left
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      {renderModals()}
 
     </div>
   );
