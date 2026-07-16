@@ -362,6 +362,24 @@ export default function App() {
               setDefaultHomeTab(tab);
               setScreen('home');
             }}
+            onSpotFreed={(res) => {
+              const newSpot = {
+                id: Date.now(),
+                title: res.location.split(',')[0],
+                distance: '0.1 km away',
+                type: 'Driveway',
+                price: '50.00',
+                rating: '5.0',
+                reviews: 1,
+                verified: true,
+                cctv: true,
+                security: true,
+                instant: true,
+                image: res.image || 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400'
+              };
+              setSpots(prev => [newSpot, ...prev]);
+              setToastMessage(`${res.location.split(',')[0]} is now unreserved and available!`);
+            }}
             spots={spots}
           />
         );
