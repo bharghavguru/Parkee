@@ -23,6 +23,7 @@ import Logo from './Logo';
 
 export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRenter, onSpotFreed, spots }) {
   const [view, setView] = useState('dashboard');
+  const [selectedResForDetails, setSelectedResForDetails] = useState(null);
 
   const [activeReservations, setActiveReservations] = useState([
     {
@@ -34,7 +35,11 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
       timeRemaining: 'Ends in 45m',
       status: 'active',
       progress: '75%',
-      progressColor: '#006C35'
+      progressColor: '#006C35',
+      vehicleDetails: 'Tesla Model 3 (Midnight Silver Metallic) • TN 10 AW 9988',
+      timeRange: '11:00 AM - 12:30 PM',
+      priceDetails: '₹120.00 (1.5 hrs @ ₹80/hr)',
+      customerQuery: 'Hi host, is the EV charging point near the gate available and free to use during my reservation?'
     },
     {
       id: 2,
@@ -45,7 +50,11 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
       timeRemaining: 'Overstaying: 12m',
       status: 'overstay',
       progress: '100%',
-      progressColor: 'var(--color-error)'
+      progressColor: 'var(--color-error)',
+      vehicleDetails: 'Audi A4 (Glacier White) • TN 06 KF 4411',
+      timeRange: '10:30 AM - 11:30 AM',
+      priceDetails: '₹80.00 (1.0 hr @ ₹80/hr) + ₹16.00 overstay fee',
+      customerQuery: 'Sorry, I am stuck in a meeting and might overstay by 10-15 minutes. Can I pay the extra amount directly through the app or in person?'
     },
     {
       id: 3,
@@ -56,7 +65,11 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
       timeRemaining: 'Ends in 2h 15m',
       status: 'active',
       progress: '35%',
-      progressColor: 'var(--color-brand)'
+      progressColor: 'var(--color-brand)',
+      vehicleDetails: 'BMW iX (Phytonic Blue Metallic) • TN 09 BZ 7722',
+      timeRange: '11:30 AM - 2:00 PM',
+      priceDetails: '₹300.00 (2.5 hrs @ ₹120/hr)',
+      customerQuery: 'I have some luggage to drop off. Is there wheelchair or step-free access from the parking spot to the street entrance?'
     }
   ]);
 
@@ -432,7 +445,12 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="button" className="btn btn-outline" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}>
+              <button 
+                type="button" 
+                onClick={() => setSelectedResForDetails(res)} 
+                className="btn btn-outline" 
+                style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', borderColor: 'var(--color-border)', color: 'var(--color-brand)' }}
+              >
                 Details
               </button>
               <button type="button" onClick={() => handleMarkAsLeft(res)} className="btn" style={{ flex: 1, height: '38px', fontSize: '12.5px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}>
@@ -626,6 +644,179 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
           {view === 'earnings' && <span>Earnings</span>}
         </button>
       </footer>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
+
+      {selectedResForDetails && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 20000,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div 
+            onClick={() => setSelectedResForDetails(null)} 
+            style={{ flex: 1, cursor: 'pointer' }}
+          />
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderTopLeftRadius: '32px',
+            borderTopRightRadius: '32px',
+            padding: '24px 20px 30px 20px',
+            boxShadow: '0 -10px 25px rgba(0,0,0,0.1)',
+            maxHeight: '85%',
+            overflowY: 'auto',
+            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '4px',
+              backgroundColor: 'var(--color-border)',
+              borderRadius: '2px',
+              margin: '0 auto 20px auto'
+            }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>Reservation Details</h2>
+              <button 
+                type="button" 
+                onClick={() => setSelectedResForDetails(null)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: '700',
+                  color: 'var(--color-text-muted)'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', backgroundColor: 'var(--color-bg-light)', padding: '14px', borderRadius: '16px', marginBottom: '20px' }}>
+              <img 
+                src={selectedResForDetails.image} 
+                alt={selectedResForDetails.name} 
+                style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ffffff', boxShadow: 'var(--shadow-sm)' }} 
+              />
+              <div style={{ textAlign: 'left' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>{selectedResForDetails.name}</h3>
+                <span style={{
+                  display: 'inline-block',
+                  fontSize: '9px',
+                  fontWeight: '800',
+                  padding: '3px 8px',
+                  borderRadius: '20px',
+                  letterSpacing: '0.3px',
+                  marginTop: '4px',
+                  backgroundColor: selectedResForDetails.status === 'active' ? 'rgba(0, 108, 53, 0.1)' : 'rgba(229, 62, 62, 0.1)',
+                  color: selectedResForDetails.status === 'active' ? '#006C35' : '#e53e3e'
+                }}>
+                  {selectedResForDetails.status === 'active' ? 'ACTIVE' : 'OVERSTAYING'}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'left' }}>
+              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  🚗 Vehicle Details
+                </span>
+                <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-brand)' }}>
+                  {selectedResForDetails.vehicleDetails}
+                </p>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  🕒 Reserved Time
+                </span>
+                <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: 'var(--color-brand)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>{selectedResForDetails.timeRange}</span>
+                  <span style={{ fontSize: '12px', color: selectedResForDetails.progressColor, fontWeight: '700' }}>
+                    {selectedResForDetails.timeRemaining}
+                  </span>
+                </p>
+              </div>
+
+              <div style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  💳 Price & Earnings Details
+                </span>
+                <p style={{ margin: '6px 0 0 0', fontSize: '14.5px', fontWeight: '700', color: '#006C35' }}>
+                  {selectedResForDetails.priceDetails}
+                </p>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                  💬 Customer Queries
+                </span>
+                <p style={{ 
+                  margin: '6px 0 0 0', 
+                  fontSize: '13.5px', 
+                  fontWeight: '600', 
+                  color: 'var(--color-brand)', 
+                  backgroundColor: 'rgba(11, 46, 92, 0.04)', 
+                  padding: '12px', 
+                  borderRadius: '12px',
+                  lineHeight: '1.4',
+                  fontStyle: 'italic'
+                }}>
+                  "{selectedResForDetails.customerQuery}"
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+              <button 
+                type="button" 
+                onClick={() => setSelectedResForDetails(null)}
+                className="btn btn-outline" 
+                style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px' }}
+              >
+                Close
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  handleMarkAsLeft(selectedResForDetails);
+                  setSelectedResForDetails(null);
+                }} 
+                className="btn" 
+                style={{ flex: 1, height: '44px', fontSize: '14px', fontWeight: '750', borderRadius: '12px', background: '#006C35', color: '#ffffff' }}
+              >
+                Mark as Left
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
