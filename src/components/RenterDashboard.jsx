@@ -460,20 +460,6 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
           </div>
         ))}
 
-        <div style={{ display: 'flex', gap: '12px', flexShrink: 0, marginTop: '8.5px' }}>
-          <div className="summary-status-card" style={{ flex: 1, backgroundColor: 'var(--color-brand)', color: '#ffffff', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '11px', opacity: 0.7, fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <TrendingUp size={12} /> Today's Revenue
-            </span>
-            <span style={{ fontSize: '24px', fontWeight: '800', lineHeight: 1.1 }}>₹8,450.00</span>
-          </div>
-          <div className="summary-status-card" style={{ flex: 1, backgroundColor: '#cbd5e1', color: 'var(--color-brand)', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '11px', opacity: 0.8, fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Users size={12} /> Upcoming
-            </span>
-            <span style={{ fontSize: '24px', fontWeight: '800', lineHeight: 1.1 }}>4 Bookings</span>
-          </div>
-        </div>
 
       </div>
 
