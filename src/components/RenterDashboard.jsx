@@ -7,7 +7,6 @@ import {
   Calendar, 
   SlidersHorizontal, 
   Plus, 
-  Menu, 
   Search, 
   ClipboardList, 
   Wallet, 
@@ -133,13 +132,7 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
     if (view === 'reservations') {
       return (
         <header className="home-top-bar" style={{ flexShrink: 0, justifyContent: 'space-between', display: 'flex', alignItems: 'center' }}>
-          <button 
-            type="button" 
-            className="btn-menu-hamburger" 
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-brand)', display: 'flex', alignItems: 'center' }}
-          >
-            <Menu size={22} />
-          </button>
+          <div style={{ width: 22 }} />
           <span className="home-brand-title" style={{ fontSize: '17px', fontWeight: '800', color: 'var(--color-brand)', flex: 1, textAlign: 'center' }}>Active Reservations</span>
           <button 
             type="button" 
@@ -177,9 +170,6 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
             </button>
           )}
 
-          <button type="button" className="btn-menu-hamburger" style={{ background: 'none', border: 'none', padding: '0 8px 0 0', display: 'flex', alignItems: 'center', color: 'var(--color-brand)' }}>
-            <Menu size={22} />
-          </button>
           <span className="home-brand-title">PARKEE</span>
         </div>
         
