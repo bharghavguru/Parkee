@@ -35,6 +35,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
 
   // New Map & Bottom Sheet States
   const [mapZoom, setMapZoom] = useState('out'); // 'out' | 'in'
+  const [currentZoom, setCurrentZoom] = useState(12); // Real numerical zoom level for clustering
   const [sheetHeight, setSheetHeight] = useState('half'); // 'collapsed' | 'half' | 'full'
   const [selectedMapSpot, setSelectedMapSpot] = useState(1);
 
@@ -176,11 +177,83 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
 
   const activeSpot = filteredChennaiSpots.find(s => s.id === selectedMapSpot) || filteredChennaiSpots[0] || allChennaiSpots[0];
 
+  // Helper to dynamically cluster spots based on zoom level
+  const getClusters = (spotsList, zoom) => {
+    if (!spotsList || spotsList.length === 0) return [];
+    
+    // Choose clustering threshold (in degrees) based on zoom level
+    let threshold;
+    if (zoom <= 10) {
+      threshold = 5.0; // Cluster everything in the city
+    } else if (zoom === 11) {
+      threshold = 0.25; // Large city/district cluster
+    } else if (zoom === 12) {
+      threshold = 0.12; 
+    } else if (zoom === 13) {
+      threshold = 0.05; // Area level cluster
+    } else if (zoom === 14) {
+      threshold = 0.02; // Neighborhood / Street level
+    } else if (zoom === 15) {
+      threshold = 0.007; // Zoom 15 clusters very near spots
+    } else {
+      threshold = 0.0008; // Zoom 16+, only cluster virtually overlapping pins
+    }
+
+    const clusters = [];
+    const visited = new Set();
+
+    spotsList.forEach(spot => {
+      if (visited.has(spot.id)) return;
+
+      const cluster = {
+        id: `c-${spot.id}`,
+        centerLat: spot.lat,
+        centerLng: spot.lng,
+        spots: [spot]
+      };
+      visited.add(spot.id);
+
+      spotsList.forEach(otherSpot => {
+        if (visited.has(otherSpot.id)) return;
+
+        // Simple coordinate distance approximation
+        const latDiff = spot.lat - otherSpot.lat;
+        const lngDiff = spot.lng - otherSpot.lng;
+        const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+
+        if (distance <= threshold) {
+          cluster.spots.push(otherSpot);
+          visited.add(otherSpot.id);
+        }
+      });
+
+      // Recalculate cluster center based on average coordinate
+      const size = cluster.spots.length;
+      if (size > 1) {
+        let sumLat = 0;
+        let sumLng = 0;
+        cluster.spots.forEach(s => {
+          sumLat += s.lat;
+          sumLng += s.lng;
+        });
+        cluster.centerLat = sumLat / size;
+        cluster.centerLng = sumLng / size;
+      }
+
+      clusters.push(cluster);
+    });
+
+    return clusters;
+  };
+
   // Initialize and destroy Leaflet Map
   useEffect(() => {
     if (activeTab !== 'home' || !mapRef.current) return;
 
-    const initialZoom = mapZoom === 'out' ? 12 : 15;
+    const initialZoom = 12;
+    setCurrentZoom(initialZoom);
+    setMapZoom('out');
+
     const centerLatLng = activeSpot && activeSpot.lat && activeSpot.lng 
       ? [activeSpot.lat, activeSpot.lng] 
       : [13.0405, 80.2450];
@@ -201,6 +274,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
 
     mapInstance.on('zoomend', () => {
       const zoom = mapInstance.getZoom();
+      setCurrentZoom(zoom);
       setMapZoom(zoom < 14 ? 'out' : 'in');
     });
 
@@ -211,10 +285,11 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     };
   }, [activeTab]);
 
-  // Synchronize Leaflet view when selectedMapSpot or activeSpot changes
+  // Synchronize Leaflet view when selectedMapSpot changes
   useEffect(() => {
     if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
-      const targetZoom = mapZoom === 'out' ? 12 : 15;
+      const zoom = leafletMap.current.getZoom();
+      const targetZoom = zoom < 14 ? 15 : zoom; // if zoomed out, zoom in when item is selected
       leafletMap.current.setView([activeSpot.lat, activeSpot.lng], targetZoom, {
         animate: true,
         duration: 0.5
@@ -231,83 +306,73 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
 
     markersGroup.clearLayers();
 
-    if (mapZoom === 'out') {
-      // Cluster 1 (Khader Nawaz Khan Road + T. Nagar)
-      const cluster1Spots = filteredChennaiSpots.filter(s => s.id === 1 || s.id === 2);
-      if (cluster1Spots.length > 0) {
-        const cluster1Icon = L.divIcon({
+    // Perform clustering on filtered spots
+    const clusters = getClusters(filteredChennaiSpots, currentZoom);
+
+    clusters.forEach(cluster => {
+      const clusterSize = cluster.spots.length;
+
+      if (clusterSize > 1) {
+        // Multi-spot Cluster: Render a single circle marker showing the number of spots
+        const clusterIcon = L.divIcon({
           className: 'custom-leaflet-icon',
-          html: `<button type="button" class="map-cluster-badge cluster-1"><span>${cluster1Spots.length * 12}</span></button>`,
+          html: `<button type="button" class="map-cluster-badge"><span>${clusterSize}</span></button>`,
           iconSize: [40, 40],
-          iconAnchor: [0, 0]
+          iconAnchor: [0, 0] // Centered via transform: translate(-50%, -50%) in style
         });
-        const m1 = L.marker([13.0506, 80.2425], { icon: cluster1Icon });
-        m1.on('click', () => {
-          setMapZoom('in');
-          setSelectedMapSpot(1);
-          mapInstance.setView([13.0607, 80.2512], 15, { animate: true });
+
+        const marker = L.marker([cluster.centerLat, cluster.centerLng], { icon: clusterIcon });
+        
+        marker.on('click', () => {
+          // Zoom in closer, centering on cluster
+          const nextZoom = Math.min(mapInstance.getMaxZoom() || 18, mapInstance.getZoom() + 2);
+          mapInstance.setView([cluster.centerLat, cluster.centerLng], nextZoom, { animate: true });
         });
-        m1.addTo(markersGroup);
+        
+        marker.addTo(markersGroup);
+      } else {
+        // Single Spot in cluster
+        const spot = cluster.spots[0];
+        
+        // Show as a price pin if zoom is high enough, otherwise show as a small count '1' badge
+        if (currentZoom >= 14) {
+          const isSelected = spot.id === selectedMapSpot;
+          const pinIcon = L.divIcon({
+            className: 'custom-leaflet-icon',
+            html: `<button type="button" class="map-price-pin-marker ${isSelected ? 'selected' : ''}">
+                     <span class="price-pin-txt">₹${spot.price}</span>
+                     <div class="price-pin-pointer"></div>
+                   </button>`,
+            iconSize: [80, 40],
+            iconAnchor: [0, 0] // Centered/aligned via translate(-50%, -100%) in style
+          });
+
+          const marker = L.marker([spot.lat, spot.lng], { icon: pinIcon });
+          marker.on('click', () => {
+            setSelectedMapSpot(spot.id);
+          });
+          marker.addTo(markersGroup);
+        } else {
+          // Render as a single spot circle representation
+          const singleIcon = L.divIcon({
+            className: 'custom-leaflet-icon',
+            html: `<button type="button" class="map-cluster-badge"><span>1</span></button>`,
+            iconSize: [40, 40],
+            iconAnchor: [0, 0]
+          });
+
+          const marker = L.marker([spot.lat, spot.lng], { icon: singleIcon });
+          marker.on('click', () => {
+            // Zoom in on it
+            mapInstance.setView([spot.lat, spot.lng], 15, { animate: true });
+            setSelectedMapSpot(spot.id);
+          });
+          marker.addTo(markersGroup);
+        }
       }
+    });
 
-      // Cluster 2 (Adyar)
-      const cluster2Spots = filteredChennaiSpots.filter(s => s.id === 3);
-      if (cluster2Spots.length > 0) {
-        const cluster2Icon = L.divIcon({
-          className: 'custom-leaflet-icon',
-          html: `<button type="button" class="map-cluster-badge cluster-2"><span>5</span></button>`,
-          iconSize: [40, 40],
-          iconAnchor: [0, 0]
-        });
-        const m2 = L.marker([13.0063, 80.2574], { icon: cluster2Icon });
-        m2.on('click', () => {
-          setMapZoom('in');
-          setSelectedMapSpot(3);
-          mapInstance.setView([13.0063, 80.2574], 15, { animate: true });
-        });
-        m2.addTo(markersGroup);
-      }
-
-      // Other host listed spots
-      const otherSpots = filteredChennaiSpots.filter(s => s.id > 3);
-      otherSpots.forEach(spot => {
-        const pinIcon = L.divIcon({
-          className: 'custom-leaflet-icon',
-          html: `<button type="button" class="map-cluster-badge"><span>1</span></button>`,
-          iconSize: [40, 40],
-          iconAnchor: [0, 0]
-        });
-        const m = L.marker([spot.lat, spot.lng], { icon: pinIcon });
-        m.on('click', () => {
-          setMapZoom('in');
-          setSelectedMapSpot(spot.id);
-          mapInstance.setView([spot.lat, spot.lng], 15, { animate: true });
-        });
-        m.addTo(markersGroup);
-      });
-
-    } else {
-      // Zoomed In: Individual price pins
-      filteredChennaiSpots.forEach(spot => {
-        const isSelected = spot.id === selectedMapSpot;
-        const pinIcon = L.divIcon({
-          className: 'custom-leaflet-icon',
-          html: `<button type="button" class="map-price-pin-marker ${isSelected ? 'selected' : ''}">
-                   <span class="price-pin-txt">₹${spot.price}</span>
-                   <div class="price-pin-pointer"></div>
-                 </button>`,
-          iconSize: [80, 40],
-          iconAnchor: [0, 0]
-        });
-
-        const m = L.marker([spot.lat, spot.lng], { icon: pinIcon });
-        m.on('click', () => {
-          setSelectedMapSpot(spot.id);
-        });
-        m.addTo(markersGroup);
-      });
-    }
-  }, [filteredChennaiSpots, selectedMapSpot, mapZoom, activeTab]);
+  }, [filteredChennaiSpots, selectedMapSpot, currentZoom, activeTab]);
 
   const renderHomeContent = () => {
     const toggleSheetHeight = () => {
@@ -354,9 +419,9 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
             className="btn-floating-nav-control" 
             onClick={() => {
               if (leafletMap.current) {
-                const currentZoom = leafletMap.current.getZoom();
-                if (currentZoom >= 14) {
-                  leafletMap.current.setZoom(12);
+                const currentZoomVal = leafletMap.current.getZoom();
+                if (currentZoomVal >= 14) {
+                  leafletMap.current.setZoom(11);
                 } else {
                   leafletMap.current.setZoom(15);
                 }
@@ -364,7 +429,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
             }}
             title="Toggle Zoom"
           >
-            {mapZoom === 'out' ? <Plus size={20} /> : <Minus size={20} />}
+            {currentZoom < 14 ? <Plus size={20} /> : <Minus size={20} />}
           </button>
 
           <button 
@@ -374,7 +439,6 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
               if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
                 leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
                 setSelectedMapSpot(activeSpot.id);
-                setMapZoom('in');
               }
             }}
             title="Find My Location"
