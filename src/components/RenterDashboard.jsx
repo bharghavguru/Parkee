@@ -274,10 +274,6 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
           <span style={{ fontSize: '11px', opacity: 0.7, fontWeight: '700' }}>Total Active Spots</span>
           <span style={{ fontSize: '28px', fontWeight: '800', lineHeight: 1.1 }}>{activeSpotsCount}</span>
         </div>
-        <div className="summary-status-card" style={{ flex: 1, backgroundColor: '#86efac', color: 'var(--color-brand)', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
-          <span style={{ fontSize: '11px', opacity: 0.8, fontWeight: '700' }}>Monthly Earnings</span>
-          <span style={{ fontSize: '20px', fontWeight: '800', lineHeight: 1.1 }}>₹1,03,500.00</span>
-        </div>
       </div>
 
       <div className="host-spots-list" style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, paddingBottom: '30px' }}>
