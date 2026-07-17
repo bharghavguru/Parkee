@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Settings, 
@@ -14,11 +14,26 @@ import {
   HelpCircle, 
   ChevronRight,
   CheckCircle2,
-  Wallet
+  Wallet,
+  LogOut,
+  X
 } from 'lucide-react';
 
 export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToHost, onNavigateTab }) {
   const [subPage, setSubPage] = useState(null); // null | 'wallet'
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+        setSettingsOpen(false);
+      }
+    }
+    if (settingsOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [settingsOpen]);
   const [balance, setBalance] = useState(500.00);
   const [topupAmount, setTopupAmount] = useState('');
   const [isTopupOpen, setIsTopupOpen] = useState(false);
@@ -107,9 +122,64 @@ export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToH
           <ArrowLeft size={22} className="back-arrow-icon" />
         </button>
         <span className="profile-header-title">Profile</span>
-        <button type="button" className="profile-settings-btn" aria-label="Settings configuration">
-          <Settings size={22} />
-        </button>
+
+        {/* Settings icon with dropdown */}
+        <div ref={settingsRef} style={{ position: 'relative' }}>
+          <button
+            type="button"
+            className="profile-settings-btn"
+            aria-label="Settings configuration"
+            onClick={() => setSettingsOpen(prev => !prev)}
+          >
+            <Settings size={22} />
+          </button>
+
+          {settingsOpen && (
+            <div className="settings-dropdown-panel">
+              {/* KYC Verification */}
+              <button
+                type="button"
+                className="settings-dropdown-item"
+                onClick={() => setSettingsOpen(false)}
+              >
+                <div className="settings-item-left">
+                  <ShieldCheck size={17} className="settings-item-icon" />
+                  <span>KYC verification</span>
+                </div>
+                <CheckCircle2 size={15} className="kyc-success-badge-icon" />
+              </button>
+
+              <div className="settings-dropdown-divider" />
+
+              {/* Help & Support */}
+              <button
+                type="button"
+                className="settings-dropdown-item"
+                onClick={() => setSettingsOpen(false)}
+              >
+                <div className="settings-item-left">
+                  <HelpCircle size={17} className="settings-item-icon" />
+                  <span>Help &amp; support</span>
+                </div>
+                <ChevronRight size={14} className="list-chevron-icon" />
+              </button>
+
+              <div className="settings-dropdown-divider" />
+
+              {/* Logout */}
+              <button
+                type="button"
+                className="settings-dropdown-item settings-logout-item"
+                onClick={() => { setSettingsOpen(false); onLogout && onLogout(); }}
+              >
+                <div className="settings-item-left">
+                  <LogOut size={17} className="settings-item-icon settings-logout-icon" />
+                  <span>Log out</span>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Profile content list scroll container */}
@@ -240,46 +310,8 @@ export default function UserProfile({ currentUser, onBack, onLogout, onSwitchToH
           </div>
         </div>
 
-        {/* Global actions separator space */}
+        {/* Bottom spacer */}
         <div className="profile-space-separator"></div>
-
-        {/* Common general options list */}
-        <div className="profile-list-links common-list-box">
-          <button type="button" className="list-option-row">
-            <div className="list-row-left">
-              <ShieldCheck size={18} className="list-row-icon" />
-              <span>KYC verification</span>
-            </div>
-            <div className="list-row-right-status">
-              <CheckCircle2 size={16} className="kyc-success-badge-icon" />
-              <ChevronRight size={16} className="list-chevron-icon" />
-            </div>
-          </button>
-
-          <button type="button" className="list-option-row">
-            <div className="list-row-left">
-              <HelpCircle size={18} className="list-row-icon" />
-              <span>Help & support</span>
-            </div>
-            <ChevronRight size={16} className="list-chevron-icon" />
-          </button>
-
-          <button type="button" className="list-option-row">
-            <div className="list-row-left">
-              <Settings size={18} className="list-row-icon" />
-              <span>Settings</span>
-            </div>
-            <ChevronRight size={16} className="list-chevron-icon" />
-          </button>
-        </div>
-
-        {/* Logout panel action */}
-        <div className="profile-logout-footer">
-          <button type="button" className="btn-logout-link-red" onClick={onLogout}>
-            Log out
-          </button>
-          <span className="profile-software-version">Version 2.4.1 (612)</span>
-        </div>
 
       </div>
     </div>

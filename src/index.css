@@ -3934,6 +3934,76 @@ h1 {
   border: none !important;
 }
 
+/* ── Settings dropdown panel ── */
+.settings-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5e9f0);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(11, 46, 92, 0.14);
+  z-index: 999;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.18s ease;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.settings-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 13px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-brand, #0b2e5c);
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.settings-dropdown-item:hover {
+  background: rgba(11, 46, 92, 0.05);
+}
+
+.settings-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-item-icon {
+  color: var(--color-brand, #0b2e5c);
+  flex-shrink: 0;
+}
+
+.settings-dropdown-divider {
+  height: 1px;
+  background: var(--color-border, #e5e9f0);
+  margin: 0 12px;
+}
+
+.settings-logout-item {
+  color: #e03d3d;
+}
+
+.settings-logout-icon {
+  color: #e03d3d !important;
+}
+
+.kyc-success-badge-icon {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
 
 
 
