@@ -34,10 +34,16 @@ export default function App() {
     } catch (e) {}
   };
 
-  const [screen, setScreenState] = useState(() => getStorageItem('parkee_screen', 'home'));
+  const [screen, setScreenState] = useState(() => getStorageItem('parkee_screen', 'signup'));
+  const [isLoggedIn, setIsLoggedIn] = useState(() => getStorageItem('parkee_logged_in', 'false') === 'true');
   const setScreen = (newVal) => {
     setStorageItem('parkee_screen', newVal);
     setScreenState(newVal);
+  };
+
+  const setLoggedIn = (val) => {
+    setStorageItem('parkee_logged_in', val ? 'true' : 'false');
+    setIsLoggedIn(val);
   };
 
   const [phoneNumber, setPhoneNumberState] = useState(() => getStorageItem('parkee_phone', ''));
@@ -216,6 +222,7 @@ export default function App() {
   // Verify entered OTP
   const handleVerifyOtp = (otpCode) => {
     if (otpCode === activeOtp) {
+      setLoggedIn(true);
       setScreen('usertype-select');
       return true;
     }
@@ -236,6 +243,7 @@ export default function App() {
       email: 'guest@parkee.com',
       phone: '+91 99999 99999'
     });
+    setLoggedIn(true);
     setScreen('usertype-select');
     setToastMessage("Signed in under temporary Guest authorization");
   };
@@ -247,6 +255,7 @@ export default function App() {
       email: emailVal,
       phone: '+91 98765 43210'
     });
+    setLoggedIn(true);
     setScreen('usertype-select');
   };
 
@@ -259,8 +268,10 @@ export default function App() {
     removeStorageItem('parkee_home_tab');
     removeStorageItem('parkee_current_user');
     removeStorageItem('parkee_spots');
+    removeStorageItem('parkee_logged_in');
 
     setScreenState('signup');
+    setIsLoggedIn(false);
     setPhoneNumberState('');
     setActiveOtpState('');
     setSelectedSpotState(null);
@@ -283,6 +294,7 @@ export default function App() {
               setCurrentUser({ name, email, phone });
               setPhoneNumber(phone);
               setToastMessage(`Welcome to PARKEE, ${name}! Your account has been created.`);
+              setLoggedIn(true);
               setScreen('usertype-select');
             }}
             onNavigateToLogin={() => setScreen('login')}
@@ -297,6 +309,7 @@ export default function App() {
             onNavigateSignUp={() => setScreen('signup')}
           />
         );
+
       case 'verify-otp':
         return (
           <OTPVerification
@@ -318,6 +331,7 @@ export default function App() {
           <UserTypeSelection
             onSelectType={(type) => setScreen(type === 'parker' ? 'home' : 'host')}
             onBack={() => setScreen('signup')}
+            isLoggedIn={isLoggedIn}
           />
         );
       case 'home':
@@ -422,6 +436,7 @@ export default function App() {
               setCurrentUser({ name, email, phone });
               setPhoneNumber(phone);
               setToastMessage(`Welcome to PARKEE, ${name}! Your account has been created.`);
+              setLoggedIn(true);
               setScreen('usertype-select');
             }}
             onNavigateToLogin={() => setScreen('login')}

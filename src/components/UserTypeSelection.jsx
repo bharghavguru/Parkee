@@ -2,17 +2,26 @@ import React from 'react';
 import { ArrowLeft, Car, Home, ChevronRight } from 'lucide-react';
 import Logo from './Logo';
 
-export default function UserTypeSelection({ onSelectType, onBack }) {
+export default function UserTypeSelection({ onSelectType, onBack, isLoggedIn }) {
   return (
     <div className="login-screen-animation select-usertype-wrapper">
-      {/* Navigation Header */}
-      <div className="verify-nav-header">
-        <button type="button" className="btn-back-link" onClick={onBack} aria-label="Go back to verification">
-          <ArrowLeft size={22} className="back-arrow-icon" />
-        </button>
-        <span className="verify-nav-title">PARKEE</span>
-        <div style={{ width: '22px' }}></div>
-      </div>
+      {/* Navigation Header — hidden after login */}
+      {!isLoggedIn && (
+        <div className="verify-nav-header">
+          <button type="button" className="btn-back-link" onClick={onBack} aria-label="Go back to verification">
+            <ArrowLeft size={22} className="back-arrow-icon" />
+          </button>
+          <span className="verify-nav-title">PARKEE</span>
+          <div style={{ width: '22px' }}></div>
+        </div>
+      )}
+
+      {/* When logged in show a centred title bar without a back arrow */}
+      {isLoggedIn && (
+        <div className="verify-nav-header" style={{ justifyContent: 'center' }}>
+          <span className="verify-nav-title">PARKEE</span>
+        </div>
+      )}
 
       <div className="verify-container">
         {/* Logo and Greeting */}
@@ -42,7 +51,8 @@ export default function UserTypeSelection({ onSelectType, onBack }) {
               <p>Find and book convenient parking spots near you.</p>
             </div>
             
-            <ChevronRight size={20} className="usertype-chevron" />
+            {/* Hide chevron arrow after login */}
+            {!isLoggedIn && <ChevronRight size={20} className="usertype-chevron" />}
           </button>
 
           {/* Card 2: Have Space to Rent */}
@@ -60,7 +70,8 @@ export default function UserTypeSelection({ onSelectType, onBack }) {
               <p>List your driveway or garage and start earning.</p>
             </div>
             
-            <ChevronRight size={20} className="usertype-chevron" />
+            {/* Hide chevron arrow after login */}
+            {!isLoggedIn && <ChevronRight size={20} className="usertype-chevron" />}
           </button>
         </div>
 
