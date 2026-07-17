@@ -4004,6 +4004,53 @@ h1 {
   flex-shrink: 0;
 }
 
+/* ── Host Dashboard Action Buttons ── */
+.host-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+  margin-top: 8px;
+}
+
+.host-action-btn {
+  width: 100%;
+  height: 52px;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.host-action-btn-secondary {
+  width: 100%;
+  height: 52px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: unset !important;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  background-color: #ffffff;
+  color: var(--color-text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.host-action-btn-secondary:hover {
+  border-color: var(--color-brand);
+  background-color: var(--color-bg-light, #f5f7fa);
+}
+
+.host-action-btn-secondary:active {
+  transform: scale(0.975);
+}
+
 
 
 
