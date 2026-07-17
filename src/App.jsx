@@ -65,7 +65,10 @@ export default function App() {
         verified: true,
         cctv: true,
         security: true,
-        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600'
+        image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600',
+        status: 'ACTIVE',
+        bookingsMtd: '28 sessions',
+        totalEarned: '22,400.00'
       },
       {
         id: 2,
@@ -78,7 +81,10 @@ export default function App() {
         verified: false,
         cctv: true,
         security: true,
-        image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=600'
+        image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=600',
+        status: 'PENDING REVIEW',
+        bookingsMtd: '0 sessions',
+        totalEarned: '0.00'
       },
       {
         id: 3,
@@ -91,7 +97,10 @@ export default function App() {
         verified: false,
         cctv: false,
         security: false,
-        image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=600'
+        image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=600',
+        status: 'HIDDEN',
+        bookingsMtd: '12 sessions',
+        totalEarned: '7,200.00'
       }
     ];
   });
@@ -375,12 +384,18 @@ export default function App() {
                 cctv: true,
                 security: true,
                 instant: true,
-                image: res.image || 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400'
+                image: res.image || 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400',
+                status: 'ACTIVE',
+                bookingsMtd: '0 sessions',
+                totalEarned: '0.00'
               };
               setSpots(prev => [newSpot, ...prev]);
               setToastMessage(`${res.location.split(',')[0]} is now unreserved and available!`);
             }}
             spots={spots}
+            onUpdateSpot={(updatedSpot) => {
+              setSpots(prev => prev.map(s => s.id === updatedSpot.id ? updatedSpot : s));
+            }}
           />
         );
       case 'list-space':
@@ -388,7 +403,13 @@ export default function App() {
           <ListYourSpace
             onBack={() => setScreen('host')}
             onSubmit={(newSpot) => {
-              setSpots([newSpot, ...spots]);
+              const fullSpot = {
+                ...newSpot,
+                status: 'ACTIVE',
+                bookingsMtd: '0 sessions',
+                totalEarned: '0.00'
+              };
+              setSpots([fullSpot, ...spots]);
               setToastMessage(`Success! New space "${newSpot.title}" has been listed.`);
               setScreen('host');
             }}

@@ -958,32 +958,17 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
                     </div>
                   </div>
 
-                  {/* CCTV & Status row */}
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <label style={{ fontSize: '13px', fontWeight: '750', color: 'var(--color-brand)' }}>Status</label>
-                      <select 
-                        value={editStatus}
-                        onChange={(e) => setEditStatus(e.target.value)}
-                        style={{ width: '100%', height: '44px', borderRadius: '12px', border: '1px solid var(--color-border)', padding: '0 12px', fontSize: '14.5px', color: 'var(--color-brand)', outline: 'none', backgroundColor: '#ffffff' }}
-                      >
-                        <option value="ACTIVE">ACTIVE</option>
-                        <option value="PENDING REVIEW">PENDING REVIEW</option>
-                        <option value="HIDDEN">HIDDEN</option>
-                      </select>
-                    </div>
-                    
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '20px' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={editCctv}
-                          onChange={(e) => setEditCctv(e.target.checked)}
-                          style={{ width: '18px', height: '18px', borderRadius: '6px', accentColor: 'var(--color-green)' }}
-                        />
-                        <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--color-brand)' }}>CCTV Security</span>
-                      </label>
-                    </div>
+                  {/* CCTV Security */}
+                  <div style={{ display: 'flex', alignItems: 'center', margin: '4px 0' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={editCctv}
+                        onChange={(e) => setEditCctv(e.target.checked)}
+                        style={{ width: '18px', height: '18px', borderRadius: '6px', accentColor: 'var(--color-green)' }}
+                      />
+                      <span style={{ fontSize: '13.5px', fontWeight: '700', color: 'var(--color-brand)' }}>CCTV Security</span>
+                    </label>
                   </div>
 
                 </div>

@@ -44,121 +44,30 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
   const leafletMap = useRef(null);
   const markersGroupRef = useRef(null);
 
-  // Core Central Chennai Spots definition matching User localization requirements
-  const chennaiSpots = [
-    {
-      id: 1,
-      title: '12 Khader Nawaz Khan Road',
-      distance: '0.2 km away',
-      type: 'Driveway',
-      price: '80.00',
-      rating: '4.9',
-      reviews: 128,
-      verified: true,
-      cctv: true,
-      security: true,
-      instant: true,
-      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=400',
-      left: '60%', 
-      top: '40%',
-      lat: 13.0607,
-      lng: 80.2512
-    },
-    {
-      id: 2,
-      title: 'T. Nagar Multi-Level Parking',
-      distance: '0.8 km away',
-      type: 'Garage',
-      price: '120.00',
-      rating: '4.8',
-      reviews: 94,
-      verified: true,
-      cctv: true,
-      security: true,
-      instant: true,
-      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=400',
-      left: '25%', 
-      top: '35%',
-      lat: 13.0405,
-      lng: 80.2337
-    },
-    {
-      id: 3,
-      title: 'Adyar Private Car Park',
-      distance: '2.1 km away',
-      type: 'Driveway',
-      price: '60.00',
-      rating: '4.6',
-      reviews: 43,
-      verified: false,
-      cctv: false,
-      security: false,
-      instant: false,
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=400',
-      left: '70%', 
-      top: '68%',
-      lat: 13.0063,
-      lng: 80.2574
-    }
-  ];
+  // Core Central Chennai Spots coordinates map
+  const defaultCoordinates = {
+    1: { lat: 13.0607, lng: 80.2512, left: '60%', top: '40%' },
+    2: { lat: 13.0405, lng: 80.2337, left: '25%', top: '35%' },
+    3: { lat: 13.0063, lng: 80.2574, left: '70%', top: '68%' }
+  };
 
-  // Map user host spots to Chennai coordinates to show live synchronization support
-  const customSpots = (spots || []).map((spot, i) => {
-    if (spot.lat && spot.lng) return spot;
-    return {
-      ...spot,
-      instant: true,
-      lat: 13.0405 + (i * 0.01) - 0.005,
-      lng: 80.2450 + (i * 0.01) - 0.005,
-      left: `${42 + (i * 8)}%`,
-      top: `${52 - (i * 6)}%`
-    };
-  });
+  const allChennaiSpots = (spots || [])
+    .filter(spot => spot.status !== 'HIDDEN')
+    .map((spot, i) => {
+      const coords = defaultCoordinates[spot.id] || {
+        lat: 13.0405 + (i * 0.01) - 0.005,
+        lng: 80.2450 + (i * 0.01) - 0.005,
+        left: `${42 + (i * 8)}%`,
+        top: `${52 - (i * 6)}%`
+      };
+      return {
+        ...spot,
+        ...coords,
+        instant: spot.instant ?? true
+      };
+    });
 
-  const allChennaiSpots = [...chennaiSpots, ...customSpots.filter(cs => cs.id > 3)];
-
-  // Spot Mock Data
-  const allSpots = spots || [
-    {
-      id: 1,
-      title: '12 Khader Nawaz Khan Road',
-      distance: '0.2 km away',
-      type: 'Driveway',
-      price: '80.00',
-      rating: '4.9',
-      reviews: 156,
-      verified: true,
-      cctv: true,
-      security: true,
-      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      id: 2,
-      title: 'T. Nagar Multi-Level Parking',
-      distance: '0.5 km away',
-      type: 'Underground',
-      price: '120.00',
-      rating: '4.7',
-      reviews: 89,
-      verified: false,
-      cctv: true,
-      security: true,
-      image: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      id: 3,
-      title: 'Adyar Private Car Park',
-      distance: '0.8 km away',
-      type: 'Private Lot',
-      price: '60.00',
-      rating: '4.5',
-      reviews: 210,
-      verified: false,
-      cctv: false,
-      security: false,
-      image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&q=80&w=600'
-    }
-  ];
+  const allSpots = (spots || []).filter(spot => spot.status !== 'HIDDEN');
 
   // Filtering Logic
   const filteredSpots = allSpots.filter(spot => {
