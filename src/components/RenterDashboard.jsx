@@ -40,6 +40,8 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
   const [editCctv, setEditCctv] = useState(false);
   const [editStatus, setEditStatus] = useState('ACTIVE');
   const [editType, setEditType] = useState('Driveway');
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('ALL');
 
   const startEditing = (spot) => {
     setEditTitle(spot.title);
@@ -133,6 +135,14 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
     bookingsMtd: spot.bookingsMtd || '0 sessions',
     totalEarned: spot.totalEarned || '0.00'
   }));
+
+  const filteredHostSpots = allHostSpots.filter(spot => {
+    if (statusFilter === 'ALL') return true;
+    if (statusFilter === 'ACTIVE') return spot.status === 'ACTIVE';
+    if (statusFilter === 'PENDING') return spot.status === 'PENDING REVIEW';
+    if (statusFilter === 'HIDDEN') return spot.status === 'HIDDEN';
+    return true;
+  });
 
   const activeSpotsCount = allHostSpots.filter(s => s.status === 'ACTIVE').length;
 
@@ -253,8 +263,24 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
           <h1 className="host-portal-title" style={{ fontSize: '24px', fontWeight: '800', color: 'var(--color-brand)', margin: 0 }}>My Parking Spots</h1>
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" className="btn-filter-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '38px', height: '38px', border: '1px solid var(--color-border)', borderRadius: '12px', background: '#ffffff', cursor: 'pointer' }}>
-              <SlidersHorizontal size={16} style={{ color: 'var(--color-brand)' }} />
+            <button 
+              type="button" 
+              className="btn-filter-icon" 
+              onClick={() => setShowFilters(!showFilters)}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                width: '38px', 
+                height: '38px', 
+                border: '1px solid var(--color-border)', 
+                borderRadius: '12px', 
+                background: showFilters ? 'var(--color-brand)' : '#ffffff', 
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              <SlidersHorizontal size={16} style={{ color: showFilters ? '#ffffff' : 'var(--color-brand)' }} />
             </button>
             <button 
               type="button" 
@@ -269,6 +295,54 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
         </div>
       </div>
 
+      {showFilters && (
+        <div style={{ 
+          display: 'flex', 
+          gap: '8px', 
+          padding: '0 16px 12px 16px', 
+          overflowX: 'auto', 
+          flexShrink: 0,
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}>
+          {['ALL', 'ACTIVE', 'PENDING REVIEW', 'HIDDEN'].map((status) => {
+            const isActive = (status === 'ALL' && statusFilter === 'ALL') || 
+                             (status === 'ACTIVE' && statusFilter === 'ACTIVE') || 
+                             (status === 'PENDING REVIEW' && statusFilter === 'PENDING') || 
+                             (status === 'HIDDEN' && statusFilter === 'HIDDEN');
+            
+            const displayLabel = status === 'PENDING REVIEW' ? 'PENDING' : status;
+            
+            return (
+              <button
+                key={status}
+                type="button"
+                onClick={() => {
+                  if (status === 'ALL') setStatusFilter('ALL');
+                  else if (status === 'ACTIVE') setStatusFilter('ACTIVE');
+                  else if (status === 'PENDING REVIEW') setStatusFilter('PENDING');
+                  else if (status === 'HIDDEN') setStatusFilter('HIDDEN');
+                }}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  border: isActive ? 'none' : '1px solid var(--color-border)',
+                  backgroundColor: isActive ? 'var(--color-brand)' : '#ffffff',
+                  color: isActive ? '#ffffff' : 'var(--color-brand)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {displayLabel}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="host-summary-row" style={{ display: 'flex', gap: '12px', padding: '0 16px 16px 16px', flexShrink: 0 }}>
         <div className="summary-status-card" style={{ flex: 1, backgroundColor: 'var(--color-brand)', color: '#ffffff', padding: '16px', borderRadius: '16px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)' }}>
           <span style={{ fontSize: '11px', opacity: 0.7, fontWeight: '700' }}>Total Active Spots</span>
@@ -277,7 +351,12 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
       </div>
 
       <div className="host-spots-list" style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1, paddingBottom: '30px' }}>
-        {allHostSpots.map(spot => (
+        {filteredHostSpots.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)', fontSize: '14px' }}>
+            No spots found matching the selected filter.
+          </div>
+        ) : (
+          filteredHostSpots.map(spot => (
           <div key={spot.id} className="host-spot-card" style={{ background: '#ffffff', border: '1px solid var(--color-border)', borderRadius: '20px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
               <img src={spot.image} alt={spot.title} style={{ width: '80px', height: '80px', borderRadius: '14px', objectFit: 'cover', flexShrink: 0 }} />
@@ -358,7 +437,7 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
               )}
             </div>
           </div>
-        ))}
+        )))}
 
         <button 
           type="button" 
