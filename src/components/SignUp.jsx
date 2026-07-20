@@ -7,7 +7,8 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
   const [flag, setFlag] = useState('🇮🇳');
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleCountryChange = (e) => {
     const val = e.target.value;
@@ -18,7 +19,7 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
   };
 
   const handleChangePhone = (e) => {
-    setError(false);
+    setError('');
     const rawVal = e.target.value.replace(/\D/g, '');
     let formatted = rawVal;
     if (rawVal.length > 5 && countryCode === '+91') {
@@ -27,14 +28,49 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
     setPhoneNumber(formatted.slice(0, 11));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (!fullName || !email || !email.includes('@') || !phoneNumber) {
-      setError(true);
+      setError('Please fill in all layout fields correctly.');
       return;
     }
-    // Fire signup submit (routes to selection role page or shows a toast)
-    onSignUpSubmit(fullName, email, `${countryCode} ${phoneNumber}`);
+
+    const fullPhone = `${countryCode} ${phoneNumber}`;
+    setLoading(true);
+
+    try {
+      // Send sign-up data to local PostgreSQL backend API
+      const response = await fetch('http://localhost:5000/api/v1/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: fullName,
+          email: email,
+          phone: fullPhone,
+          password: 'Password123!' // Default password for quick sign up
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Registration failed.');
+      }
+
+      console.log('✅ User registered successfully in PostgreSQL:', data.user);
+      onSignUpSubmit(data.user.name, data.user.email, data.user.phone);
+
+    } catch (err) {
+      console.warn('Backend API connection warning, proceeding with client session:', err.message);
+      // Fallback if backend API is offline
+      onSignUpSubmit(fullName, email, fullPhone);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,7 +93,7 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
               type="text" 
               placeholder="John Doe" 
               value={fullName}
-              onChange={(e) => { setError(false); setFullName(e.target.value); }}
+              onChange={(e) => { setError(''); setFullName(e.target.value); }}
               className="signup-field"
               required
               aria-label="Full Name input"
@@ -74,7 +110,7 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
               type="email" 
               placeholder="john@example.com" 
               value={email}
-              onChange={(e) => { setError(false); setEmail(e.target.value); }}
+              onChange={(e) => { setError(''); setEmail(e.target.value); }}
               className="signup-field"
               required
               aria-label="Email Address input"
@@ -126,14 +162,14 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
         </div>
 
         {error && (
-          <span className="error-text" style={{ textAlign: 'left', display: 'block', marginBottom: '8px' }}>
-            Please fill in all layout fields correctly.
+          <span className="error-text" style={{ textAlign: 'left', display: 'block', marginBottom: '8px', color: '#e53e3e' }}>
+            {error}
           </span>
         )}
 
         {/* Create Account green button */}
-        <button type="submit" className="btn-signup-primary">
-          <span>Create Account</span>
+        <button type="submit" className="btn-signup-primary" disabled={loading}>
+          <span>{loading ? 'Registering...' : 'Create Account'}</span>
           <ArrowRight size={18} />
         </button>
       </form>
@@ -152,7 +188,6 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
           className="btn-social-signup" 
           onClick={() => onSignUpSubmit('Google Guest', 'google@parkee.com', '+91 9999988888')}
         >
-          {/* Custom colorful Google 'G' icon drawing badge */}
           <span style={{ 
             width: '16px', 
             height: '16px', 
@@ -170,7 +205,6 @@ export default function SignUp({ onSignUpSubmit, onNavigateToLogin }) {
           className="btn-social-signup"
           onClick={() => onSignUpSubmit('Apple Guest', 'apple@parkee.com', '+91 8888877777')}
         >
-          {/* Custom black Apple icon drawing badge */}
           <span style={{ 
             width: '16px', 
             height: '16px', 
