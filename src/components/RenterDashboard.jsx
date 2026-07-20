@@ -21,7 +21,8 @@ import {
   Check,
   Edit3,
   Eye,
-  EyeOff
+  EyeOff,
+  Car
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -1107,6 +1108,30 @@ export default function RenterDashboard({ onBack, onListNewSpace, onNavigateRent
         >
           <Wallet size={20} />
           {view === 'earnings' && <span>Earnings</span>}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onNavigateRenter && onNavigateRenter('home')}
+          style={{
+            background: 'none',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            color: 'var(--color-text-muted)',
+            fontWeight: '750',
+            fontSize: '12px',
+            backgroundColor: 'transparent',
+            padding: '8px',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            outline: 'none',
+            transition: 'all 0.2s'
+          }}
+          aria-label="Switch to Parker (vehicle owner) home"
+        >
+          <Car size={20} />
         </button>
       </footer>
 

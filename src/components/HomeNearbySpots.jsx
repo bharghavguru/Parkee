@@ -20,7 +20,8 @@ import {
   Target,
   ChevronUp,
   ChevronDown,
-  Home
+  Home,
+  Compass
 } from 'lucide-react';
 import Logo from './Logo';
 import UserProfile from './UserProfile';
@@ -328,31 +329,55 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
             className="btn-floating-nav-control" 
             onClick={() => {
               if (leafletMap.current) {
-                const currentZoomVal = leafletMap.current.getZoom();
-                if (currentZoomVal >= 14) {
-                  leafletMap.current.setZoom(11);
-                } else {
-                  leafletMap.current.setZoom(15);
-                }
+                leafletMap.current.zoomIn();
               }
             }}
-            title="Toggle Zoom"
+            title="Zoom In"
           >
-            {currentZoom < 14 ? <Plus size={20} /> : <Minus size={20} />}
+            <Plus size={20} />
           </button>
 
           <button 
             type="button" 
             className="btn-floating-nav-control" 
             onClick={() => {
-              if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
-                leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
-                setSelectedMapSpot(activeSpot.id);
+              if (leafletMap.current) {
+                leafletMap.current.zoomOut();
               }
             }}
-            title="Find My Location"
+            title="Zoom Out"
           >
-            <Target size={20} />
+            <Minus size={20} />
+          </button>
+
+          <button 
+            type="button" 
+            className="btn-floating-nav-control" 
+            onClick={() => {
+              if (leafletMap.current) {
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                      const { latitude, longitude } = position.coords;
+                      leafletMap.current.setView([latitude, longitude], 15, { animate: true });
+                    },
+                    (error) => {
+                      console.error("Error getting location:", error);
+                      if (activeSpot && activeSpot.lat && activeSpot.lng) {
+                        leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
+                        setSelectedMapSpot(activeSpot.id);
+                      }
+                    }
+                  );
+                } else if (activeSpot && activeSpot.lat && activeSpot.lng) {
+                  leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
+                  setSelectedMapSpot(activeSpot.id);
+                }
+              }
+            }}
+            title="My Location"
+          >
+            <Compass size={20} />
           </button>
         </div>
 
