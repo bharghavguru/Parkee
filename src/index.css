@@ -3460,18 +3460,27 @@ h1 {
 }
 
 .submit-listing-button {
-  margin-top: 12px;
+  margin-top: 16px;
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  height: 58px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px;
+  border-radius: 16px !important;
   background-color: #006C35 !important;
   color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 108, 53, 0.35);
+  transition: all 0.2s ease;
 }
 
 .submit-listing-button:hover {
   background-color: #005026 !important;
+  box-shadow: 0 6px 20px rgba(0, 108, 53, 0.45);
+  transform: translateY(-1px);
 }
 
 .submit-listing-button:hover .btn-icon-right {

@@ -31,7 +31,7 @@ export default function ListYourSpace({ onBack, onSubmit }) {
     }
 
     setUploadingIndex(index);
-    
+
     // Simulate network delay
     setTimeout(() => {
       const updated = [...photos];
@@ -83,16 +83,16 @@ export default function ListYourSpace({ onBack, onSubmit }) {
         <div className="status-dot-active"></div>
       </div>
 
-      <form onSubmit={handleFormSubmit} className="list-space-container">
-        
+      <form id="list-space-form" onSubmit={handleFormSubmit} className="list-space-container">
+
         {/* Section 1: Location */}
         <div className="list-form-section">
           <label className="list-section-title">Where is your space located?</label>
           <div className="list-address-input-wrapper">
             <MapPin size={18} className="list-address-icon" />
-            <input 
-              type="text" 
-              placeholder="Enter full address or postcode" 
+            <input
+              type="text"
+              placeholder="Enter full address or postcode"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="list-address-field"
@@ -110,10 +110,10 @@ export default function ListYourSpace({ onBack, onSubmit }) {
             <label className="list-section-title">Add Photos</label>
             <span className="list-sub-label">Up to 5 photos</span>
           </div>
-          
+
           <div className="photos-grid-layout">
             {/* Primary Photo Slot */}
-            <div 
+            <div
               className={`primary-photo-slot ${photos[0] ? 'has-image' : ''} ${uploadingIndex === 0 ? 'uploading' : ''}`}
               onClick={() => handlePhotoClick(0)}
             >
@@ -137,7 +137,7 @@ export default function ListYourSpace({ onBack, onSubmit }) {
             {/* Smaller Slots */}
             <div className="smaller-photos-grid">
               {[1, 2, 3, 4].map((index) => (
-                <div 
+                <div
                   key={index}
                   className={`small-photo-slot ${photos[index] ? 'has-image' : ''} ${uploadingIndex === index ? 'uploading' : ''}`}
                   onClick={() => handlePhotoClick(index)}
@@ -164,8 +164,8 @@ export default function ListYourSpace({ onBack, onSubmit }) {
         <div className="list-form-section">
           <label className="list-section-title">Suitable for</label>
           <div className="vehicle-suitability-row">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={`suitability-chip ${suitableFor === '2-wheeler' ? 'active' : ''}`}
               onClick={() => setSuitableFor('2-wheeler')}
             >
@@ -180,8 +180,8 @@ export default function ListYourSpace({ onBack, onSubmit }) {
               <span>2-wheeler</span>
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={`suitability-chip ${suitableFor === '4-wheeler' ? 'active' : ''}`}
               onClick={() => setSuitableFor('4-wheeler')}
             >
@@ -195,8 +195,8 @@ export default function ListYourSpace({ onBack, onSubmit }) {
               <span>4-wheeler</span>
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               className={`suitability-chip ${suitableFor === 'both' ? 'active' : ''}`}
               onClick={() => setSuitableFor('both')}
             >
@@ -219,8 +219,8 @@ export default function ListYourSpace({ onBack, onSubmit }) {
           <label className="list-section-title">Price per hour</label>
           <div className="list-price-input-wrapper">
             <span className="price-currency-symbol">₹</span>
-            <input 
-              type="number" 
+            <input
+              type="number"
               step="any"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
@@ -242,8 +242,8 @@ export default function ListYourSpace({ onBack, onSubmit }) {
             </div>
           </div>
           <label className="standard-switch-label">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={cctv}
               onChange={(e) => setCctv(e.target.checked)}
               className="checkbox-input-hidden"
@@ -257,7 +257,7 @@ export default function ListYourSpace({ onBack, onSubmit }) {
           <div className="list-time-header">
             <label className="list-section-title">Available Time Slots</label>
             <button type="button" className="btn-customise-slots">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{marginRight: '3px'}}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '3px' }}>
                 <path d="M21 4H3M21 12H3M21 20H3M12 4v16" />
               </svg>
               <span>Customise</span>
@@ -293,10 +293,32 @@ export default function ListYourSpace({ onBack, onSubmit }) {
           </div>
         </div>
 
-        {/* Submit Listing Button */}
-        <button type="submit" className="btn btn-primary submit-listing-button">
+        {/* Submit Listing Button — inside form, full width */}
+        <button
+          type="submit"
+          style={{
+            height: '58px',
+            fontSize: '16px',
+            fontWeight: '800',
+            borderRadius: '16px',
+            letterSpacing: '0.3px',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            backgroundColor: '#006C35',
+            color: '#ffffff',
+            border: 'none',
+            boxShadow: '0 4px 16px rgba(0, 108, 53, 0.3)',
+            cursor: 'pointer',
+            marginTop: '8px',
+            marginBottom: '16px',
+            flexShrink: 0,
+          }}
+        >
           <span>Submit listing</span>
-          <ArrowRight size={18} className="btn-icon-right scale-up" />
+          <ArrowRight size={20} />
         </button>
 
       </form>
