@@ -81,10 +81,24 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     return matchesSearch && matchesCctv && matchesSecurity;
   });
 
+  // Helper to calculate distance in km between two coordinates
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   const filteredChennaiSpots = allChennaiSpots.filter(spot => {
     const matchesSearch = spot.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCctv = !cctvFilter || spot.cctv;
     const matchesSecurity = !securityFilter || spot.security;
+    
     return matchesSearch && matchesCctv && matchesSecurity;
   });
 
@@ -306,8 +320,18 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       }
     });
 
-    // Render User Location Marker
+    // Render User Location Marker and 5km Radius Circle
     if (userLocation) {
+      // 5km Radius Circle to visualize the scan area
+      L.circle([userLocation.lat, userLocation.lng], {
+        color: '#4285F4',
+        fillColor: '#4285F4',
+        fillOpacity: 0.08,
+        weight: 1,
+        dashArray: '4, 4',
+        radius: 5000 // 5km in meters
+      }).addTo(markersGroup);
+
       const userIcon = L.divIcon({
         className: 'custom-leaflet-icon',
         html: `<div class="user-location-marker">
@@ -321,6 +345,25 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     }
 
   }, [filteredChennaiSpots, selectedMapSpot, currentZoom, activeTab, userLocation]);
+
+  const handleSearchMap = async (e) => {
+    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          
+          if (leafletMap.current) {
+            leafletMap.current.setView([lat, lon], 14, { animate: true });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching location:", error);
+      }
+    }
+  };
 
   const renderHomeContent = () => {
     const toggleSheetHeight = () => {
@@ -341,6 +384,7 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
               placeholder="Where to? Near Nungambakkam..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchMap}
               className="search-input-field"
               aria-label="Where to search Input"
             />
@@ -397,11 +441,13 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
                       const { latitude, longitude } = position.coords;
-                      leafletMap.current.setView([latitude, longitude], 15, { animate: true });
+                      if (leafletMap.current) {
+                        leafletMap.current.setView([latitude, longitude], 15, { animate: true });
+                      }
                     },
                     (error) => {
                       console.error("Error getting location:", error);
-                      if (activeSpot && activeSpot.lat && activeSpot.lng) {
+                      if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
                         leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
                         setSelectedMapSpot(activeSpot.id);
                       }
