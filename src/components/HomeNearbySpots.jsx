@@ -44,6 +44,9 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
   const mapRef = useRef(null);
   const leafletMap = useRef(null);
   const markersGroupRef = useRef(null);
+  const userLocationWatcher = useRef(null);
+
+  const [userLocation, setUserLocation] = useState(null);
 
   // Core Central Chennai Spots coordinates map
   const defaultCoordinates = {
@@ -207,6 +210,27 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
     }
   }, [selectedMapSpot]);
 
+  // Watch User Location
+  useEffect(() => {
+    if (activeTab === 'home' && navigator.geolocation) {
+      userLocationWatcher.current = navigator.geolocation.watchPosition(
+        (position) => {
+          setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+        },
+        (error) => {
+          console.error("Error watching location:", error);
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+    
+    return () => {
+      if (userLocationWatcher.current !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(userLocationWatcher.current);
+      }
+    };
+  }, [activeTab]);
+
   // Dynamically update markers
   useEffect(() => {
     if (!leafletMap.current || !markersGroupRef.current) return;
@@ -282,7 +306,21 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       }
     });
 
-  }, [filteredChennaiSpots, selectedMapSpot, currentZoom, activeTab]);
+    // Render User Location Marker
+    if (userLocation) {
+      const userIcon = L.divIcon({
+        className: 'custom-leaflet-icon',
+        html: `<div class="user-location-marker">
+                 <div class="user-location-dot"></div>
+                 <div class="user-location-pulse"></div>
+               </div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(markersGroup);
+    }
+
+  }, [filteredChennaiSpots, selectedMapSpot, currentZoom, activeTab, userLocation]);
 
   const renderHomeContent = () => {
     const toggleSheetHeight = () => {
