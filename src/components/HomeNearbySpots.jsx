@@ -205,6 +205,21 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
       setMapZoom(zoom < 14 ? 'out' : 'in');
     });
 
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          if (leafletMap.current) {
+            leafletMap.current.setView([latitude, longitude], 15, { animate: true });
+          }
+        },
+        (error) => {
+          console.error("Error getting initial location:", error);
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+
     return () => {
       mapInstance.remove();
       leafletMap.current = null;
@@ -437,7 +452,9 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
             className="btn-floating-nav-control" 
             onClick={() => {
               if (leafletMap.current) {
-                if (navigator.geolocation) {
+                if (userLocation) {
+                  leafletMap.current.setView([userLocation.lat, userLocation.lng], 15, { animate: true });
+                } else if (navigator.geolocation) {
                   navigator.geolocation.getCurrentPosition(
                     (position) => {
                       const { latitude, longitude } = position.coords;
@@ -447,15 +464,9 @@ export default function HomeNearbySpots({ currentUser, onLogout, onSwitchToHost,
                     },
                     (error) => {
                       console.error("Error getting location:", error);
-                      if (leafletMap.current && activeSpot && activeSpot.lat && activeSpot.lng) {
-                        leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
-                        setSelectedMapSpot(activeSpot.id);
-                      }
-                    }
+                    },
+                    { enableHighAccuracy: true }
                   );
-                } else if (activeSpot && activeSpot.lat && activeSpot.lng) {
-                  leafletMap.current.setView([activeSpot.lat, activeSpot.lng], 15, { animate: true });
-                  setSelectedMapSpot(activeSpot.id);
                 }
               }
             }}
